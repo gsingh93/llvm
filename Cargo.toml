@@ -1,0 +1,12 @@
+[package]
+name = "llvm"
+version = "0.0.1"
+authors = ["Gulshan Singh <gsingh2011@gmail.com>"]
+description = "A safe wrapper for LLVM bindings"
+repository = "https://github.com/gsingh93/llvm"
+license = "MIT"
+
+[dependencies]
+llvm_sys = "*"
+libc = "*"
+
