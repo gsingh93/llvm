@@ -7,6 +7,6 @@ repository = "https://github.com/gsingh93/llvm"
 license = "MIT"
 
 [dependencies]
-llvm_sys = "*"
+llvm-sys = "*"
 libc = "*"
 
