@@ -23,6 +23,21 @@ impl ExecutionEngine {
             }
         }
     }
+
+    pub fn get_function_address(&self, fname: &str) -> Option<extern "C" fn()> {
+        let fname_s = CString::new(fname).unwrap();
+        unsafe {
+            let addr = LLVMGetFunctionAddress(self.ptr, fname_s.as_ptr());
+
+            if addr == 0 {
+                None
+            } else {
+                Some(mem::transmute(addr))
+            }
+        }
+    }
+}
+
 impl Drop for ExecutionEngine {
     fn drop(&mut self) {
         unsafe {
@@ -30,3 +45,4 @@ impl Drop for ExecutionEngine {
         }
     }
 }
+
