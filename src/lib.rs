@@ -20,47 +20,12 @@ mod context;
 mod types;
 mod builder;
 mod module;
+mod function;
 
 pub use context::*;
 pub use types::*;
 pub use builder::*;
 pub use module::*;
-
-pub fn function_get_param(func: LLVMValueRef, index: u32) -> Option<LLVMValueRef> {
-    let p = unsafe {
-        llvm::LLVMGetParam(func, index)
-    };
-
-    if p.is_null() {
-        return None;
-    } else  {
-        return Some(p);
-    }
-}
-
-pub fn get_first_param(func: LLVMValueRef) -> Option<LLVMValueRef> {
-    let res = unsafe {
-        llvm::LLVMGetFirstParam(func)
-    };
-    // TODO: We should replace this API with a safe iterator in the future
-    if res.is_null() {
-        None
-    } else {
-        Some(res)
-    }
-}
-
-pub fn get_next_param(param: LLVMValueRef) -> Option<LLVMValueRef> {
-    let res = unsafe {
-        llvm::LLVMGetNextParam(param)
-    };
-    // TODO: We should replace this API with a safe iterator in the future
-    if res.is_null() {
-        None
-    } else {
-        Some(res)
-    }
-}
 
 pub fn set_value_name(val: LLVMValueRef, name: &str) {
     let c_name = CString::new(name).unwrap();
