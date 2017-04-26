@@ -46,16 +46,16 @@ impl Iterator for FunctionParamIter {
     type Item = LLVMValueRef;
 
     fn next(&mut self) -> Option<LLVMValueRef> {
-        let res = if self.first {
+        self.arg = if self.first {
             unsafe { llvm::LLVMGetFirstParam(self.arg) }
         } else {
             unsafe { llvm::LLVMGetNextParam(self.arg) }
         };
 
-        if res.is_null() {
+        if self.arg.is_null() {
             None
         } else {
-            Some(res)
+            Some(self.arg)
         }
     }
 }
