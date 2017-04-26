@@ -1,8 +1,4 @@
-use std::ffi::{CString, CStr};
-use llvm_sys::*;
 use llvm_sys::prelude::*;
-use llvm_sys::target_machine::*;
-use llvm_sys::target::*;
 use llvm_sys::core as llvm;
 
 use super::*;

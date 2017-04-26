@@ -1,10 +1,4 @@
-
-use std::ffi::{CString, CStr};
-
-use llvm_sys::*;
 use llvm_sys::prelude::*;
-use llvm_sys::target_machine::*;
-use llvm_sys::target::*;
 use llvm_sys::core as llvm;
 
 pub struct Function {
@@ -25,6 +19,8 @@ impl Function {
         }
     }
 
+    // TODO: Check if there is an optimization so that we could
+    // call func.params().nth(1) and call this function
     pub fn get_param(&self, index: u32) -> Option<LLVMValueRef> {
         let p = unsafe {
             llvm::LLVMGetParam(self.ptr, index)
