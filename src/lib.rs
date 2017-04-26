@@ -89,14 +89,6 @@ pub fn print_module_to_file(module: &Module, path: &str) -> Result<(), &'static 
     }
 }
 
-pub fn print_module_to_string<'a>(module: &'a Module) -> String {
-    unsafe {
-        let c_str = llvm::LLVMPrintModuleToString(module.module);
-        let len = libc::strlen(c_str);
-        String::from_raw_parts(c_str as *mut u8, (len + 1) as usize, (len + 1) as usize)
-    }
-}
-
 pub fn get_target_from_name(name: &str) -> Option<LLVMTargetRef> {
     let c_name = CString::new(name).unwrap();
     let res = unsafe {
