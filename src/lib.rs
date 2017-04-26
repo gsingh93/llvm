@@ -51,6 +51,12 @@ impl Context {
         }
     }
 
+    pub fn int64_type(&self) -> LLVMTypeRef {
+        unsafe {
+            llvm::LLVMInt64TypeInContext(self.context)
+        }
+    }
+
     pub fn int32_type(&self) -> LLVMTypeRef {
         unsafe {
             llvm::LLVMInt32TypeInContext(self.context)
