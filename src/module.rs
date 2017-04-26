@@ -9,20 +9,20 @@ use super::*;
 
 // No `Drop` impl is needed as this is disposed of when the associated context is disposed
 pub struct Module {
-    pub module: LLVMModuleRef
+    pub ptr: LLVMModuleRef
 }
 
 impl Module {
     pub fn dump(&self) {
         unsafe {
-            llvm::LLVMDumpModule(self.module)
+            llvm::LLVMDumpModule(self.ptr)
         }
     }
 
     pub fn add_function(&mut self, func_ty: LLVMTypeRef, name: &str) -> Function {
         let c_name = CString::new(name).unwrap();
         let p = unsafe {
-            llvm::LLVMAddFunction(self.module, c_name.as_ptr(), func_ty)
+            llvm::LLVMAddFunction(self.ptr, c_name.as_ptr(), func_ty)
         };
         Function {
             ptr: p
@@ -32,7 +32,7 @@ impl Module {
     pub fn get_named_function(&mut self, name: &str) -> Option<Function> {
         let c_name = CString::new(name).unwrap();
         let res = unsafe {
-            llvm::LLVMGetNamedFunction(self.module, c_name.as_ptr())
+            llvm::LLVMGetNamedFunction(self.ptr, c_name.as_ptr())
         };
 
         if res.is_null() {
@@ -47,7 +47,7 @@ impl Module {
         let mut em: usize = 0;
         let em_ptr: *mut usize = &mut em;
         unsafe {
-            llvm::LLVMPrintModuleToFile(self.module, c_path.as_ptr(), em_ptr as *mut *mut i8);
+            llvm::LLVMPrintModuleToFile(self.ptr, c_path.as_ptr(), em_ptr as *mut *mut i8);
             if em == 0 { // no error message was set
                 Ok(())
             } else {
@@ -60,7 +60,7 @@ impl Module {
 impl fmt::Display for Module {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
-            let c_str = llvm::LLVMPrintModuleToString(self.module);
+            let c_str = llvm::LLVMPrintModuleToString(self.ptr);
             let len = libc::strlen(c_str);
             let s = String::from_raw_parts(
                 c_str as *mut u8,

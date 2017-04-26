@@ -76,7 +76,7 @@ impl TargetMachine {
             let em_ptr: *mut usize = &mut em;
             unsafe {
                 LLVMTargetMachineEmitToFile(self.ptr,
-                                            module.module,
+                                            module.ptr,
                                             c_path.as_ptr() as *mut i8,
                                             file_type,
                                             em_ptr as *mut *mut i8);

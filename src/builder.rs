@@ -5,45 +5,45 @@ use llvm_sys::core as llvm;
 use super::*;
 
 pub struct Builder {
-    pub builder: LLVMBuilderRef
+    pub ptr: LLVMBuilderRef
 }
 
 impl Builder {
     pub fn position_at_end(&mut self, basic_block: LLVMBasicBlockRef) {
         unsafe {
-            llvm::LLVMPositionBuilderAtEnd(self.builder, basic_block);
+            llvm::LLVMPositionBuilderAtEnd(self.ptr, basic_block);
         }
     }
 
     pub fn build_ret(&mut self, ret_val: LLVMValueRef) -> LLVMValueRef {
         unsafe {
-            llvm::LLVMBuildRet(self.builder, ret_val)
+            llvm::LLVMBuildRet(self.ptr, ret_val)
         }
     }
 
     pub fn build_ret_void(&self) -> LLVMValueRef {
         unsafe {
-            llvm::LLVMBuildRetVoid(self.builder)
+            llvm::LLVMBuildRetVoid(self.ptr)
         }
     }
 
     pub fn build_alloca(&mut self, ty: LLVMTypeRef, name: &str) -> LLVMValueRef {
         let c_name = CString::new(name).unwrap();
         unsafe {
-            llvm::LLVMBuildAlloca(self.builder, ty, c_name.as_ptr())
+            llvm::LLVMBuildAlloca(self.ptr, ty, c_name.as_ptr())
         }
     }
 
     pub fn build_store(&mut self, val: LLVMValueRef, ptr: LLVMValueRef) -> LLVMValueRef {
         unsafe {
-            llvm::LLVMBuildStore(self.builder, val, ptr)
+            llvm::LLVMBuildStore(self.ptr, val, ptr)
         }
     }
 
     pub fn build_load(&mut self, ptr: LLVMValueRef, name: &str) -> LLVMValueRef {
         let c_name = CString::new(name).unwrap();
         unsafe {
-            llvm::LLVMBuildLoad(self.builder, ptr, c_name.as_ptr())
+            llvm::LLVMBuildLoad(self.ptr, ptr, c_name.as_ptr())
         }
     }
 
@@ -52,7 +52,7 @@ impl Builder {
         let c_name = CString::new(name).unwrap();
         unsafe {
             llvm::LLVMBuildCall(
-                self.builder,
+                self.ptr,
                 func.ptr,
                 args.as_mut_ptr(),
                 args.len() as u32,
@@ -64,21 +64,21 @@ impl Builder {
     pub fn build_add(&mut self, lhs: LLVMValueRef, rhs: LLVMValueRef, name: &str) -> LLVMValueRef {
         let c_name = CString::new(name).unwrap();
         unsafe {
-            llvm::LLVMBuildAdd(self.builder, lhs, rhs, c_name.as_ptr())
+            llvm::LLVMBuildAdd(self.ptr, lhs, rhs, c_name.as_ptr())
         }
     }
 
     pub fn build_sub(&mut self, lhs: LLVMValueRef, rhs: LLVMValueRef, name: &str) -> LLVMValueRef {
         let c_name = CString::new(name).unwrap();
         unsafe {
-            llvm::LLVMBuildSub(self.builder, lhs, rhs, c_name.as_ptr())
+            llvm::LLVMBuildSub(self.ptr, lhs, rhs, c_name.as_ptr())
         }
     }
 
     pub fn build_mul(&mut self, lhs: LLVMValueRef, rhs: LLVMValueRef, name: &str) -> LLVMValueRef {
         let c_name = CString::new(name).unwrap();
         unsafe {
-            llvm::LLVMBuildMul(self.builder, lhs, rhs, c_name.as_ptr())
+            llvm::LLVMBuildMul(self.ptr, lhs, rhs, c_name.as_ptr())
         }
     }
 
@@ -86,7 +86,7 @@ impl Builder {
                       name: &str) -> LLVMValueRef {
         let c_name = CString::new(name).unwrap();
         unsafe {
-            llvm::LLVMBuildSDiv(self.builder, lhs, rhs, c_name.as_ptr())
+            llvm::LLVMBuildSDiv(self.ptr, lhs, rhs, c_name.as_ptr())
         }
     }
 
@@ -94,7 +94,7 @@ impl Builder {
                       name: &str) -> LLVMValueRef {
         let c_name = CString::new(name).unwrap();
         unsafe {
-            llvm::LLVMBuildICmp(self.builder, op, lhs, rhs, c_name.as_ptr())
+            llvm::LLVMBuildICmp(self.ptr, op, lhs, rhs, c_name.as_ptr())
         }
     }
 
@@ -102,7 +102,7 @@ impl Builder {
         let c_s = CString::new(s).unwrap();
         let c_name = CString::new(name).unwrap();
         unsafe {
-            llvm::LLVMBuildGlobalString(self.builder, c_s.as_ptr(), c_name.as_ptr())
+            llvm::LLVMBuildGlobalString(self.ptr, c_s.as_ptr(), c_name.as_ptr())
         }
     }
 
@@ -110,7 +110,7 @@ impl Builder {
                                name: &str) -> LLVMValueRef {
         let c_name = CString::new(name).unwrap();
         unsafe {
-            llvm::LLVMBuildInBoundsGEP(self.builder, ptr, indices.as_mut_ptr(),
+            llvm::LLVMBuildInBoundsGEP(self.ptr, ptr, indices.as_mut_ptr(),
                                        indices.len() as u32, c_name.as_ptr())
         }
     }
@@ -118,13 +118,13 @@ impl Builder {
     pub fn build_cond_br(&self, cond: LLVMValueRef, then: LLVMBasicBlockRef,
                          else_: LLVMBasicBlockRef) -> LLVMValueRef {
         unsafe {
-            llvm::LLVMBuildCondBr(self.builder, cond, then, else_)
+            llvm::LLVMBuildCondBr(self.ptr, cond, then, else_)
         }
     }
 
     pub fn build_br(&self, dest: LLVMBasicBlockRef) -> LLVMValueRef {
         unsafe {
-            llvm::LLVMBuildBr(self.builder, dest)
+            llvm::LLVMBuildBr(self.ptr, dest)
         }
     }
 
@@ -133,7 +133,7 @@ impl Builder {
 impl Drop for Builder {
     fn drop(&mut self) {
         unsafe {
-            llvm::LLVMDisposeBuilder(self.builder);
+            llvm::LLVMDisposeBuilder(self.ptr);
         }
     }
 }
