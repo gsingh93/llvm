@@ -18,8 +18,8 @@ fn main() {
 
     // get the function's arguments
     let x = func.get_param(0).unwrap();
-    let y = func.get_param(0).unwrap();
-    let z = func.get_param(0).unwrap();
+    let y = func.get_param(1).unwrap();
+    let z = func.get_param(2).unwrap();
 
     let sum = builder.build_add(x, y, "sum");
     let sum = builder.build_add(sum, z, "sum");
@@ -38,8 +38,8 @@ fn main() {
         let f: extern "C" fn(u64, u64, u64) -> u64 = mem::transmute(addr);
 
         let x: u64 = 1;
-        let y: u64 = 1;
-        let z: u64 = 1;
+        let y: u64 = 2;
+        let z: u64 = 3;
         let res = f(x, y, z);
 
         println!("{} + {} + {} = {}", x, y, z, res);
