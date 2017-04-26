@@ -41,6 +41,20 @@ impl Module {
             Some(Function::from_value_ref(res))
         }
     }
+
+    pub fn print_to_file(&self, path: &str) -> Result<(), &'static str> {
+        let c_path = CString::new(path).unwrap();
+        let mut em: usize = 0;
+        let em_ptr: *mut usize = &mut em;
+        unsafe {
+            llvm::LLVMPrintModuleToFile(self.module, c_path.as_ptr(), em_ptr as *mut *mut i8);
+            if em == 0 { // no error message was set
+                Ok(())
+            } else {
+                Err(c_str_to_str!(em as *const i8))
+            }
+        }
+    }
 }
 
 impl fmt::Display for Module {

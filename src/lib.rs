@@ -40,20 +40,6 @@ pub fn create_pass_manager() -> LLVMPassManagerRef {
     }
 }
 
-pub fn print_module_to_file(module: &Module, path: &str) -> Result<(), &'static str> {
-    let c_path = CString::new(path).unwrap();
-    let mut em: usize = 0;
-    let em_ptr: *mut usize = &mut em;
-    unsafe {
-        llvm::LLVMPrintModuleToFile(module.module, c_path.as_ptr(), em_ptr as *mut *mut i8);
-        if em == 0 { // no error message was set
-            Ok(())
-        } else {
-            Err(c_str_to_str!(em as *const i8))
-        }
-    }
-}
-
 pub fn get_target_from_name(name: &str) -> Option<LLVMTargetRef> {
     let c_name = CString::new(name).unwrap();
     let res = unsafe {
