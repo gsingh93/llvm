@@ -74,7 +74,7 @@ impl Context {
         const_int(ty, val as u64, false)
     }
 
-    pub fn append_basic_block(&self, func: Function, name: &str) -> LLVMBasicBlockRef {
+    pub fn append_basic_block(&self, func: &mut Function, name: &str) -> LLVMBasicBlockRef {
         let c_name = CString::new(name).unwrap();
         unsafe {
             llvm::LLVMAppendBasicBlockInContext(self.ptr, func.ptr, c_name.as_ptr())
