@@ -26,6 +26,7 @@ pub use context::*;
 pub use types::*;
 pub use builder::*;
 pub use module::*;
+pub use function::*;
 
 pub fn set_value_name(val: LLVMValueRef, name: &str) {
     let c_name = CString::new(name).unwrap();

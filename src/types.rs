@@ -7,10 +7,13 @@ pub fn const_int(ty: LLVMTypeRef, val: u64, signed: bool) -> LLVMValueRef {
     }
 }
 
-pub fn function_type(ret_ty: LLVMTypeRef, mut param_types: Vec<LLVMTypeRef>,
+pub fn function_type(ret_ty: LLVMTypeRef,
+                     mut param_types: Vec<LLVMTypeRef>,
                      is_var_args: bool) -> LLVMTypeRef {
     unsafe {
-        llvm::LLVMFunctionType(ret_ty, param_types.as_mut_ptr(), param_types.len() as u32,
+        llvm::LLVMFunctionType(ret_ty,
+                               param_types.as_mut_ptr(),
+                               param_types.len() as u32,
                                is_var_args as i32)
     }
 }

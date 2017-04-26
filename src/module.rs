@@ -9,6 +9,8 @@ use llvm_sys::target_machine::*;
 use llvm_sys::target::*;
 use llvm_sys::core as llvm;
 
+use super::*;
+
 // No `Drop` impl is needed as this is disposed of when the associated context is disposed
 pub struct Module {
     pub module: LLVMModuleRef
@@ -21,14 +23,17 @@ impl Module {
         }
     }
 
-    pub fn add_function(&mut self, func_ty: LLVMTypeRef, name: &str) -> LLVMValueRef {
+    pub fn add_function(&mut self, func_ty: LLVMTypeRef, name: &str) -> Function {
         let c_name = CString::new(name).unwrap();
-        unsafe {
+        let p = unsafe {
             llvm::LLVMAddFunction(self.module, c_name.as_ptr(), func_ty)
+        };
+        Function {
+            ptr: p
         }
     }
 
-    pub fn get_named_function(&mut self, name: &str) -> Option<LLVMValueRef> {
+    pub fn get_named_function(&mut self, name: &str) -> Option<Function> {
         let c_name = CString::new(name).unwrap();
         let res = unsafe {
             llvm::LLVMGetNamedFunction(self.module, c_name.as_ptr())
@@ -37,7 +42,7 @@ impl Module {
         if res.is_null() {
             None
         } else {
-            Some(res)
+            Some(Function::from_value_ref(res))
         }
     }
 }

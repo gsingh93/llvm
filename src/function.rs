@@ -7,11 +7,17 @@ use llvm_sys::target_machine::*;
 use llvm_sys::target::*;
 use llvm_sys::core as llvm;
 
-struct Function {
-    ptr: LLVMValueRef,
+pub struct Function {
+    pub ptr: LLVMValueRef,
 }
 
 impl Function {
+    pub fn from_value_ref(p: LLVMValueRef) -> Function {
+        Function {
+            ptr: p
+        }
+    }
+
     pub fn params(&self) -> FunctionParamIter {
         FunctionParamIter {
             arg: self.ptr,
@@ -34,7 +40,7 @@ impl Function {
 }
 
 
-struct FunctionParamIter {
+pub struct FunctionParamIter {
     arg: LLVMValueRef,
     first: bool,
 }
