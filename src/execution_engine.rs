@@ -23,4 +23,10 @@ impl ExecutionEngine {
             }
         }
     }
+impl Drop for ExecutionEngine {
+    fn drop(&mut self) {
+        unsafe {
+            LLVMDisposeExecutionEngine(self.ptr);
+        }
+    }
 }
