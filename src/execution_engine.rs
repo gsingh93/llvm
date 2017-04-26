@@ -46,3 +46,8 @@ impl Drop for ExecutionEngine {
     }
 }
 
+pub fn link_in_mcjit() {
+    unsafe {
+        LLVMLinkInMCJIT();
+    }
+}
