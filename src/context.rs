@@ -61,5 +61,3 @@ impl Drop for Context {
         }
     }
 }
-
-

@@ -25,11 +25,12 @@ fn main() {
     let y = func.get_param(1).unwrap();
     let z = func.get_param(2).unwrap();
 
-    let b = context.cons(20.0f64);
+    let b = context.cons(20i8);
 
-    let sum = builder.build_add(x, y, "sum");
-    let sum = builder.build_add(sum, z, "sum");
-    builder.build_ret(sum);
+    let s1 = builder.build_add(x, b, "s1");
+    let s2 = builder.build_add(y, s1, "s2");
+    let s3 = builder.build_add(z, s2, "s3");
+    builder.build_ret(s3);
 
     module.dump();
 
