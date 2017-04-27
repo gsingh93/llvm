@@ -7,7 +7,7 @@ pub struct ExecutionEngine {
 }
 
 impl ExecutionEngine {
-    pub fn create_for_module(module: Module) -> Result<ExecutionEngine, &'static str> {
+    pub fn create_for_module(module: &Module) -> Result<ExecutionEngine, &'static str> {
         unsafe {
             let mut ee = mem::uninitialized();
             let mut out = mem::zeroed();
