@@ -2,7 +2,12 @@ use llvm_sys::prelude::*;
 use llvm_sys::core as llvm;
 use super::*;
 
-/// Represnts a type that can be inserted as a const in a context
+pub struct Value {
+    ptr: LLVMValueRef,
+}
+impl_llvm_ref!(Value, LLVMValueRef);
+
+/// Represents a type that can be inserted as a const in a context
 pub trait IntoConstValue: ContextType {
     fn gen_const(self, context: &Context) -> LLVMValueRef;
 }

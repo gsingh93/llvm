@@ -10,6 +10,7 @@ use value::IntoConstValue;
 pub struct Context {
     pub ptr: LLVMContextRef
 }
+impl_llvm_ref!(Context, LLVMContextRef);
 
 impl Context {
     pub fn new() -> Self {

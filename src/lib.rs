@@ -13,6 +13,8 @@ macro_rules! c_str_to_str {
     }
 }
 
+#[macro_use]
+mod macros;
 mod context;
 mod types;
 mod builder;

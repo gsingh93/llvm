@@ -6,6 +6,7 @@ use super::*;
 pub struct Target {
     ptr: LLVMTargetRef,
 }
+impl_llvm_ref!(Target, LLVMTargetRef);
 
 impl Target {
     pub fn from_name(name: &str) -> Option<Target> {

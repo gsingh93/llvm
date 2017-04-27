@@ -7,6 +7,7 @@ use super::*;
 pub struct Builder {
     pub ptr: LLVMBuilderRef
 }
+impl_llvm_ref!(Builder, LLVMBuilderRef);
 
 impl Builder {
     pub fn position_at_end(&mut self, basic_block: LLVMBasicBlockRef) {
