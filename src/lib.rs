@@ -21,7 +21,9 @@ mod function;
 mod pass_manager;
 mod target;
 mod execution_engine;
+mod value;
 
+// TODO: This was to maintain compatiblity, we should remove this
 pub use context::*;
 pub use types::*;
 pub use builder::*;
@@ -30,6 +32,7 @@ pub use function::*;
 pub use pass_manager::*;
 pub use target::*;
 pub use execution_engine::*;
+pub use value::*;
 
 pub fn set_value_name(val: LLVMValueRef, name: &str) {
     let c_name = CString::new(name).unwrap();

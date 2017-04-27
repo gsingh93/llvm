@@ -9,8 +9,12 @@ fn main() {
     let mut builder = context.create_builder();
 
     let function_type = llvm::function_type(
-        context.int64_type(),
-        vec![context.int64_type(), context.int64_type(), context.int64_type()],
+        i64::get_type_in_context(&context),
+        vec![
+            i64::get_type_in_context(&context),
+            i64::get_type_in_context(&context),
+            i64::get_type_in_context(&context)
+        ],
         false);
     let mut func = module.add_function(function_type, "fname");
     let bb = context.append_basic_block(&mut func, "fname");
@@ -20,6 +24,8 @@ fn main() {
     let x = func.get_param(0).unwrap();
     let y = func.get_param(1).unwrap();
     let z = func.get_param(2).unwrap();
+
+    let b = context.cons(20.0f64);
 
     let sum = builder.build_add(x, y, "sum");
     let sum = builder.build_add(sum, z, "sum");
@@ -31,7 +37,7 @@ fn main() {
     llvm::initialize_native_target();
     llvm::initialize_native_asm_printer();
 
-    let ee = llvm::ExecutionEngine::create_for_module(module).unwrap();
+    let ee = llvm::ExecutionEngine::create_for_module(&module).unwrap();
     let addr = ee.get_function_address("fname").unwrap();
 
     unsafe {

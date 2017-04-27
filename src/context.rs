@@ -3,6 +3,7 @@ use llvm_sys::core as llvm;
 
 use super::*;
 
+use value::IntoConstValue;
 
 // LLVM Wrappers
 
@@ -39,46 +40,17 @@ impl Context {
         }
     }
 
-    pub fn int64_type(&self) -> LLVMTypeRef {
-        unsafe {
-            llvm::LLVMInt64TypeInContext(self.ptr)
-        }
-    }
-
-    pub fn int32_type(&self) -> LLVMTypeRef {
-        unsafe {
-            llvm::LLVMInt32TypeInContext(self.ptr)
-        }
-    }
-
-    pub fn int16_type(&self) -> LLVMTypeRef {
-        unsafe {
-            llvm::LLVMInt16TypeInContext(self.ptr)
-        }
-    }
-
-    pub fn int8_type(&self) -> LLVMTypeRef {
-        unsafe {
-            llvm::LLVMInt8TypeInContext(self.ptr)
-        }
-    }
-
-    pub fn int1_type(&self) -> LLVMTypeRef {
-        unsafe {
-            llvm::LLVMInt1TypeInContext(self.ptr)
-        }
-    }
-
-    pub fn const_bool(&self, val: bool) -> LLVMValueRef {
-        let ty = self.int1_type();
-        const_int(ty, val as u64, false)
-    }
-
     pub fn append_basic_block(&self, func: &mut Function, name: &str) -> LLVMBasicBlockRef {
         let c_name = CString::new(name).unwrap();
         unsafe {
             llvm::LLVMAppendBasicBlockInContext(self.ptr, func.ptr, c_name.as_ptr())
         }
+    }
+
+    /// Creates a constant in this context
+    /// The value must implement the trait `IntoValue`
+    pub fn cons<T: IntoConstValue>(&self, val: T) -> LLVMValueRef {
+        val.gen_const(self)
     }
 }
 
