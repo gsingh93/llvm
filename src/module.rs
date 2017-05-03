@@ -11,6 +11,7 @@ use super::*;
 pub struct Module {
     pub ptr: LLVMModuleRef
 }
+impl_llvm_ref!(Module, LLVMModuleRef);
 
 impl Module {
     pub fn dump(&self) {
