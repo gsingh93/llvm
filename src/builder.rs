@@ -32,6 +32,7 @@ macro_rules! build_op {
 pub struct Builder {
     pub ptr: LLVMBuilderRef
 }
+impl_llvm_ref!(Builder, LLVMBuilderRef);
 
 // http://llvm.org/docs/doxygen/html/group__LLVMCCoreInstructionBuilder.html
 //TODO: Get/Set Volatile

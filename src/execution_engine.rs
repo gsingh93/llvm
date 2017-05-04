@@ -5,6 +5,7 @@ use std::mem;
 pub struct ExecutionEngine {
     pub ptr: LLVMExecutionEngineRef,
 }
+impl_llvm_ref!(ExecutionEngine, LLVMExecutionEngineRef);
 
 impl ExecutionEngine {
     pub fn create_for_module(module: &Module) -> Result<ExecutionEngine, &'static str> {
