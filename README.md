@@ -1,7 +1,26 @@
-# LLVM Rust bindings [![](https://meritbadge.herokuapp.com/llvm)](https://crates.io/crates/llvm)
+# LLVM Rust bindings [![crates-badge][]][crates] [![travis-badge][]][travis] [![appveyor-badge][]][appveyor] [![coveralls-badge][]][coveralls] [![license-badge][]][license] [![gitter-badge][]][gitter]
 
-This library is intended to be a safe wrapper around the [llvm-sys bindings](https://crates.io/crates/llvm-sys). It is currently incomplete, as only methods I use for my projects have been added. If there are any methods you would like added, please open an issue or directly make a pull request. Note that if you need a method from `llvm-sys` and don't want to update this library just to call it, the raw pointers for all of the types are stored in a public field, so you can still use any of the `llvm-sys` functions.
+This library is intended to be a safe wrapper around the [llvm-sys bindings](https://crates.io/crates/llvm-sys).
+It is currently very incomplete however it is possible to use this and `llvm-sys` at the same time, most structures
+are able to be converted into `LLVM*Ref`
+
+If you find that you need a functionality thats only present in `llvm-sys` please file an issue.
+
+A simple JIT example is available [here](examples/jit.rs).
 
 ## Safety
 
 While it is better to use this library over `llvm-sys` directly, this library is still not completely safe. Some functions still return `LLVM*Ref` types, which are type aliases for raw pointers. Until I finish converting these raw pointers into safe wrapper types, there is still a possibility for unsafe behavior, although in practice this is rare.
+
+
+
+[travis-badge]: https://img.shields.io/travis/gsingh93/llvm/master.svg?style=flat-square
+[appveyor-badge]: https://img.shields.io/appveyor/ci/afonso360/llvm/master.svg?style=flat-square
+[coveralls-badge]: https://img.shields.io/coveralls/gsingh93/llvm/master.svg?style=flat-square
+[license-badge]: https://img.shields.io/github/license/gsingh93/llvm.svg?style=flat-square
+[gitter-badge]: https://img.shields.io/gitter/room/gsingh93/llvm.svg?style=flat-square
+[travis]: https://travis-ci.org/gsingh93/llvm
+[appveyor]: https://ci.appveyor.com/project/afonso360/llvm
+[coveralls]: https://coveralls.io/github/gsingh93/llvm
+[license]: LICENSE
+[gitter]: https://gitter.im/llvm-rs
