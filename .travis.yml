@@ -1,0 +1,67 @@
+language: rust
+dist: trusty
+
+rust:
+  - stable
+  - beta
+  - nightly
+
+os:
+  - linux
+
+cache: cargo
+addons:
+  apt:
+    packages:
+      # Kcov dependencies
+      - libcurl4-openssl-dev
+      - libelf-dev
+      - libdw-dev
+      - binutils-dev
+      - cmake
+
+matrix:
+  fast_finish: true
+
+env:
+  matrix:
+    - LLVM_VERSION="4.0"
+
+before_install:
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+      wget -nv -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add - &&
+      sudo apt-add-repository -y 'deb http://llvm.org/apt/trusty llvm-toolchain-trusty-4.0 main';
+    fi
+
+
+install:
+  - sudo apt-get -qq update
+  - sudo apt-get -qq install llvm-$LLVM_VERSION
+
+  - mkdir -p latest-llvm-symlinks
+  - ln -s /usr/bin/llvm-config-$LLVM_VERSION latest-llvm-symlinks/llvm-config
+  - export PATH=$PWD/latest-llvm-symlinks:$PATH;
+
+  - llvm-config --version
+
+before_script:
+  - export PATH="$PATH:$HOME/.cargo/bin"
+  - which cargo-coverage || cargo install cargo-travis
+
+script:
+  - cargo build --verbose ${CARGO_FLAGS}
+  - cargo test --verbose ${CARGO_FLAGS}
+  - cargo bench --verbose ${CARGO_FLAGS}
+  - cargo doc --verbose ${CARGO_FLAGS}
+
+after_success:
+  - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$TRAVIS_RUST_VERSION" == "nightly" ]; then
+        cargo coveralls ${CARGO_FLAGS};
+    fi
+
+webhooks:
+  urls:
+    - https://webhooks.gitter.im/e/6df09ad60f2a27d4de3c
+  on_success: never
+  on_failure: always
+  on_start: never

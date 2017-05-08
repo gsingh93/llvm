@@ -1,0 +1,40 @@
+os: Visual Studio 2017
+platform:
+  - x64
+
+environment:
+  #global:
+    #cargoflags:
+  matrix:
+    - channel: nightly
+      #cargoflags: --features "unstable"
+    - channel: beta
+      #cargoflags: --features "unstable"
+    - channel: stable
+      #cargoflags: --features "unstable"
+
+
+matrix:
+  allow_failures:
+    - channel: nightly
+
+
+install:
+  - appveyor DownloadFile https://win.rustup.rs/ -FileName rustup-init.exe
+  - rustup-init -yv --default-toolchain %channel%
+  - set PATH=%PATH%;%USERPROFILE%\.cargo\bin
+  - rustc -vV
+  - cargo -vV
+
+    # Add llvm-config.exe to the path
+  - set PATH=%PATH%;C:\Libraries\llvm-4.0.0\bin
+
+build_script:
+    - cargo build --verbose %cargoflags%
+
+test_script:
+    - cargo test --verbose %cargoflags%
+
+notifications:
+    - provider: Gitter
+      url: https://webhooks.gitter.im/e/6a95cde58c54b4e6933f
