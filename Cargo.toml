@@ -3,8 +3,17 @@ name = "llvm"
 version = "0.0.1"
 authors = ["Gulshan Singh <gsingh2011@gmail.com>"]
 description = "A safe wrapper for LLVM bindings"
-repository = "https://github.com/gsingh93/llvm"
 license = "MIT"
+repository = "https://github.com/gsingh93/llvm"
+homepage = "https://github.com/gsingh93/llvm"
+documentation = "https://docs.rs/llvm/"
+
+categories = ["api-bindings"]
+keywords = ["llvm"]
+
+[badges]
+travis-ci = { repository = "gsingh93/llvm" }
+appveyor = { repository = "gsingh93/llvm" }
 
 [dependencies]
 llvm-sys = "*"
