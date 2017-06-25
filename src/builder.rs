@@ -29,6 +29,7 @@ macro_rules! build_op {
     }
 }
 
+#[derive(Debug)]
 pub struct Builder {
     pub ptr: LLVMBuilderRef
 }

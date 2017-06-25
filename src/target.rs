@@ -3,6 +3,7 @@ use llvm_sys::target_machine::*;
 use llvm_sys::target::*;
 use super::*;
 
+#[derive(Debug)]
 pub struct Target {
     ptr: LLVMTargetRef,
 }
@@ -34,6 +35,7 @@ impl Target {
     }
 }
 
+#[derive(Debug)]
 pub struct TargetMachine {
     ptr: LLVMTargetMachineRef,
 }

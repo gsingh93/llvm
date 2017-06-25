@@ -7,6 +7,7 @@ use value::IntoConstValue;
 
 // LLVM Wrappers
 
+#[derive(Debug)]
 pub struct Context {
     pub ptr: LLVMContextRef
 }

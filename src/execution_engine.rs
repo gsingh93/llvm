@@ -2,6 +2,7 @@ use llvm_sys::execution_engine::*;
 use super::*;
 use std::mem;
 
+#[derive(Debug)]
 pub struct ExecutionEngine {
     pub ptr: LLVMExecutionEngineRef,
 }
