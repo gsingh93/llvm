@@ -2,6 +2,7 @@ use llvm_sys::prelude::*;
 use llvm_sys::core as llvm;
 use super::*;
 
+#[derive(Debug)]
 pub struct Value {
     ptr: LLVMValueRef,
 }

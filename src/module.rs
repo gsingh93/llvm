@@ -8,6 +8,7 @@ use llvm_sys::core as llvm;
 use super::*;
 
 // No `Drop` impl is needed as this is disposed of when the associated context is disposed
+#[derive(Debug)]
 pub struct Module {
     pub ptr: LLVMModuleRef
 }

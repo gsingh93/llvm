@@ -1,6 +1,7 @@
 use llvm_sys::prelude::*;
 use llvm_sys::core as llvm;
 
+#[derive(Debug)]
 pub struct Function {
     pub ptr: LLVMValueRef,
 }
@@ -36,6 +37,7 @@ impl Function {
 }
 
 
+#[derive(Debug)]
 pub struct FunctionParamIter {
     arg: LLVMValueRef,
     first: bool,

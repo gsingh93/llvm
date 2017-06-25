@@ -1,6 +1,7 @@
 use llvm_sys::core as llvm;
 use llvm_sys::prelude::*;
 
+#[derive(Debug)]
 pub struct PassManager {
     pub ptr: LLVMPassManagerRef,
 }
