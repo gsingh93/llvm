@@ -86,6 +86,14 @@ impl fmt::Debug for Type {
     }
 }
 
+impl PartialEq for Type {
+    fn eq(&self, other: &Self) -> bool {
+        LLVMTypeRef::from(self) == LLVMTypeRef::from(other)
+    }
+}
+
+impl Eq for Type {}
+
 macro_rules! impl_type {
     ($t:ty) => {
         impl<'a> Into<&'a $t> for LLVMTypeRef {
