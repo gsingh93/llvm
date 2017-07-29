@@ -161,8 +161,6 @@ impl_type!(Integer);
 
 /// A function type is a tuple consisting of a return type and an array of
 /// parameter types.
-// TODO: check how varargs work
-
 pub struct Function(Type);
 impl_type!(Function);
 
@@ -183,7 +181,17 @@ impl Function {
     }
 }
 
-// TODO: Struct, Array, Pointer, Vector
+pub struct Struct(Type);
+impl_type!(Struct);
+
+pub struct Array(Type);
+impl_type!(Array);
+
+pub struct Pointer(Type);
+impl_type!(Pointer);
+
+pub struct Vector(Type);
+impl_type!(Vector);
 
 /// Represents a LLVM Context Type
 pub trait ContextType {
