@@ -21,10 +21,10 @@ impl Module {
         }
     }
 
-    pub fn add_function(&mut self, func_ty: LLVMTypeRef, name: &str) -> Function {
+    pub fn add_function(&mut self, func_ty: &types::Function, name: &str) -> Function {
         let c_name = CString::new(name).unwrap();
         let p = unsafe {
-            llvm::LLVMAddFunction(self.ptr, c_name.as_ptr(), func_ty)
+            llvm::LLVMAddFunction(self.ptr, c_name.as_ptr(), func_ty.into())
         };
         Function {
             ptr: p

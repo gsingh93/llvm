@@ -16,7 +16,7 @@ macro_rules! c_str_to_str {
 #[macro_use]
 mod macros;
 mod context;
-mod types;
+pub mod types;
 mod builder;
 mod module;
 mod function;
@@ -27,7 +27,7 @@ mod value;
 
 // TODO: This was to maintain compatiblity, we should remove this
 pub use context::*;
-pub use types::*;
+pub use types::{Type, ContextType};
 pub use builder::*;
 pub use module::*;
 pub use function::*;

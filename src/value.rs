@@ -1,6 +1,8 @@
 use llvm_sys::prelude::*;
 use llvm_sys::core as llvm;
+
 use super::*;
+use types::ContextType;
 
 #[derive(Debug)]
 pub struct Value {
@@ -20,7 +22,7 @@ macro_rules! impl_const_value {
         impl IntoConstValue for $t {
             fn gen_const(self, context: &Context) -> LLVMValueRef {
                 unsafe {
-                    llvm::LLVMConstInt($t::get_type_in_context(context), self.into(), 0)
+                    llvm::LLVMConstInt($t::get_type_in_context(context).into(), self.into(), 0)
                 }
             }
         }
@@ -29,7 +31,7 @@ macro_rules! impl_const_value {
         impl IntoConstValue for $t {
             fn gen_const(self, context: &Context) -> LLVMValueRef {
                 unsafe {
-                    llvm::LLVMConstInt($t::get_type_in_context(context), self as u64, 1)
+                    llvm::LLVMConstInt($t::get_type_in_context(context).into(), self as u64, 1)
                 }
             }
         }
@@ -38,7 +40,7 @@ macro_rules! impl_const_value {
         impl IntoConstValue for $t {
             fn gen_const(self, context: &Context) -> LLVMValueRef {
                 unsafe {
-                    llvm::LLVMConstReal($t::get_type_in_context(context), self.into())
+                    llvm::LLVMConstReal($t::get_type_in_context(context).into(), self.into())
                 }
             }
         }

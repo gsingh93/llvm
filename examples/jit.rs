@@ -3,14 +3,13 @@ use llvm::*;
 use std::mem;
 
 fn main() {
-
     let context = Context::new();
     let mut module = context.module_create_with_name("sum");
     let mut builder = context.create_builder();
 
-    let function_type = llvm::function_type(
+    let function_type = llvm::types::Function::new(
         i64::get_type_in_context(&context),
-        vec![
+        &vec![
             i64::get_type_in_context(&context),
             i64::get_type_in_context(&context),
             i64::get_type_in_context(&context)
