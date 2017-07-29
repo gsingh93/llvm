@@ -10,6 +10,7 @@ use super::*;
 
 /// Enumeration of all the base types of the LLVM type system.
 #[allow(non_camel_case_types)]
+#[derive(Debug)]
 #[repr(C)]
 pub enum Kind {
     Void = 0,
@@ -20,16 +21,16 @@ pub enum Kind {
     FP128,
     PPC_FP128,
     Label,
-    Metadata,
-    X86_MMX,
-    Token,
-
     Integer,
     Function,
     Struct,
     Array,
     Pointer,
     Vector,
+    Metadata,
+    X86_MMX,
+    Token,
+}
 }
 
 /// Should always be used as `&Type`.
