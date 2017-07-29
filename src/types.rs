@@ -159,6 +159,12 @@ impl_type!(Token);
 pub struct Integer(Type);
 impl_type!(Integer);
 
+impl Integer {
+    pub fn width(&self) -> u32 {
+        unsafe { LLVMGetIntTypeWidth(self.into()) }
+    }
+}
+
 /// A function type is a tuple consisting of a return type and an array of
 /// parameter types.
 pub struct Function(Type);
