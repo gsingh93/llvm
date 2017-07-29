@@ -69,11 +69,7 @@ impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
             let s_ptr = LLVMPrintTypeToString(self.into());
-            let r = write!(
-                f,
-                "{}",
-                c_str_to_str!(s_ptr)
-            );
+            let r = write!(f, "{}", c_str_to_str!(s_ptr));
             LLVMDisposeMessage(s_ptr);
             r
         }
@@ -159,7 +155,6 @@ impl_type!(Token);
 
 /// Integer types are constructed with a size. Construct them with the methods
 /// that `Context` provides.
-
 pub struct Integer(Type);
 impl_type!(Integer);
 
@@ -171,13 +166,17 @@ pub struct Function(Type);
 impl_type!(Function);
 
 impl Function {
-    pub fn new<'a>(return_type: &'a Type, param_types: &[&'a Type], is_var_args: bool) -> &'a Function {
+    pub fn new<'a>(
+        return_type: &'a Type,
+        param_types: &[&'a Type],
+        is_var_args: bool,
+    ) -> &'a Function {
         unsafe {
             LLVMFunctionType(
                 return_type.into(),
                 transmute::<*const &Type, *mut LLVMTypeRef>(param_types.as_ptr()),
                 param_types.len() as u32,
-                is_var_args as LLVMBool
+                is_var_args as LLVMBool,
             ).into()
         }
     }
