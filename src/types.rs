@@ -44,9 +44,9 @@ pub enum Kind<'a> {
 // TODO: mark this as an unsized type
 pub struct Type(LLVMType);
 
-impl<'a> Into<&'a Type> for LLVMTypeRef {
-    fn into(self) -> &'a Type {
-        unsafe { transmute::<LLVMTypeRef, &Type>(self) }
+impl<'a> From<LLVMTypeRef> for &'a Type {
+    fn from(ptr: LLVMTypeRef) -> &'a Type {
+        unsafe { transmute::<LLVMTypeRef, &Type>(ptr) }
     }
 }
 
@@ -123,17 +123,17 @@ macro_rules! impl_type {
             }
         }
 
-        impl<'a> Into<&'a $t> for LLVMTypeRef {
-            fn into(self) -> &'a $t {
-                unsafe { transmute::<LLVMTypeRef, &$t>(self) }
-            }
-        }
-
         // This would not be needed if the compiler could infer that the
         // From<&Type> for LLVMTypeRef above worked on &SubType.
         impl<'a> From<&'a $t> for LLVMTypeRef {
             fn from(ty: &'a $t) -> LLVMTypeRef {
                 unsafe { transmute::<&$t, LLVMTypeRef>(ty) }
+            }
+        }
+
+        impl<'a> From<LLVMTypeRef> for &'a $t {
+            fn from(ptr: LLVMTypeRef) -> &'a $t {
+                unsafe { transmute::<LLVMTypeRef, &$t>(ptr) }
             }
         }
 
