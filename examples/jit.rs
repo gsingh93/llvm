@@ -9,7 +9,7 @@ fn main() {
 
     let function_type = llvm::types::Function::new(
         i64::get_type_in_context(&context),
-        &vec![
+        &[
             i64::get_type_in_context(&context),
             i64::get_type_in_context(&context),
             i64::get_type_in_context(&context)
