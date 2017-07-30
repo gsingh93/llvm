@@ -56,6 +56,19 @@ impl<'a> From<&'a Type> for LLVMTypeRef {
     }
 }
 
+macro_rules! try_as_fns {
+            pub fn $name<'a>(&'a self) -> Option<&'a $variant> {
+                if let Kind::$variant(t) = self.downcast() {
+                    Some(t)
+                }
+                else {
+                    None
+                }
+            }
+        )*
+    }
+}
+
 impl Type {
     pub fn is_sized(&self) -> bool {
         unsafe { LLVMTypeIsSized(self.into()) == 1 }
@@ -83,6 +96,26 @@ impl Type {
                 LLVMTypeKind::LLVMTokenTypeKind => Kind::Token(transmute(self)),
             }
         }
+    }
+
+    try_as_fns! {
+        pub fn try_as_void -> Void
+        pub fn try_as_half -> Half
+        pub fn try_as_float -> Float
+        pub fn try_as_double -> Integer
+        pub fn try_as_x86_fp80 -> X86_FP80
+        pub fn try_as_fp128 -> FP128
+        pub fn try_as_ppc_fp128 -> PPC_FP128
+        pub fn try_as_label -> Label
+        pub fn try_as_integer -> Integer
+        pub fn try_as_function -> Function
+        pub fn try_as_struct -> Struct
+        pub fn try_as_array -> Array
+        pub fn try_as_pointer -> Pointer
+        pub fn try_as_vector -> Vector
+        pub fn try_as_metadata -> Metadata
+        pub fn try_as_x86_mmx -> X86_MMX
+        pub fn try_as_token -> Token
     }
 }
 
