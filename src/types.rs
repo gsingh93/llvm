@@ -11,34 +11,37 @@ use super::*;
 /// Enumeration of all the base types of the LLVM type system.
 #[allow(non_camel_case_types)]
 #[derive(Debug)]
-#[repr(C)]
-pub enum Kind {
-    Void = 0,
-    Half,
-    Float,
-    Double,
-    X86_FP80,
-    FP128,
-    PPC_FP128,
-    Label,
-    Integer,
-    Function,
-    Struct,
-    Array,
-    Pointer,
-    Vector,
-    Metadata,
-    X86_MMX,
-    Token,
+pub enum Kind<'a> {
+    Void(&'a Void),
+    Half(&'a Half),
+    Float(&'a Float),
+    Double(&'a Double),
+    X86_FP80(&'a X86_FP80),
+    FP128(&'a FP128),
+    PPC_FP128(&'a PPC_FP128),
+    Label(&'a Label),
+    Integer(&'a Integer),
+    Function(&'a Function),
+    Struct(&'a Struct),
+    Array(&'a Array),
+    Pointer(&'a Pointer),
+    Vector(&'a Vector),
+    Metadata(&'a Metadata),
+    X86_MMX(&'a X86_MMX),
+    Token(&'a Token),
 }
 
-/// Should always be used as `&Type`.
+/// A generic LLVM type. Should always be used as `&Type`.
 ///
 /// `Type`s are owned by `Context` instances such that only one instance of a
 /// specific `Type` exists per `Context`, e.g. only 1 `Type` for `i64` exists
 /// per context. `Type`s are also never mutated and never destroyed, living for
 /// the lifetime of the `Context` that owns them.
-// TODO: can this be made into an unsized type?
+///
+/// In LLVM, there is a heirarchy of types. An `&Type` can be downcast to a
+/// subtype, such as `&Integer`, with the `downcast` method. Downcasting makes
+/// subtype specific methods, such as `width` on `&Integer` available.
+// TODO: mark this as an unsized type
 pub struct Type(LLVMType);
 
 impl<'a> Into<&'a Type> for LLVMTypeRef {
@@ -54,12 +57,32 @@ impl<'a> From<&'a Type> for LLVMTypeRef {
 }
 
 impl Type {
-    pub fn kind(&self) -> Kind {
-        unsafe { transmute(LLVMGetTypeKind(self.into())) }
-    }
-
     pub fn is_sized(&self) -> bool {
         unsafe { LLVMTypeIsSized(self.into()) == 1 }
+    }
+
+    pub fn downcast(&self) -> Kind {
+        unsafe {
+            match LLVMGetTypeKind(self.into()) {
+                LLVMTypeKind::LLVMVoidTypeKind => Kind::Void(transmute(self)),
+                LLVMTypeKind::LLVMHalfTypeKind => Kind::Half(transmute(self)),
+                LLVMTypeKind::LLVMFloatTypeKind => Kind::Float(transmute(self)),
+                LLVMTypeKind::LLVMDoubleTypeKind => Kind::Double(transmute(self)),
+                LLVMTypeKind::LLVMX86_FP80TypeKind => Kind::X86_FP80(transmute(self)),
+                LLVMTypeKind::LLVMFP128TypeKind => Kind::FP128(transmute(self)),
+                LLVMTypeKind::LLVMPPC_FP128TypeKind => Kind::PPC_FP128(transmute(self)),
+                LLVMTypeKind::LLVMLabelTypeKind => Kind::Label(transmute(self)),
+                LLVMTypeKind::LLVMIntegerTypeKind => Kind::Integer(transmute(self)),
+                LLVMTypeKind::LLVMFunctionTypeKind => Kind::Function(transmute(self)),
+                LLVMTypeKind::LLVMStructTypeKind => Kind::Struct(transmute(self)),
+                LLVMTypeKind::LLVMArrayTypeKind => Kind::Array(transmute(self)),
+                LLVMTypeKind::LLVMPointerTypeKind => Kind::Pointer(transmute(self)),
+                LLVMTypeKind::LLVMVectorTypeKind => Kind::Vector(transmute(self)),
+                LLVMTypeKind::LLVMMetadataTypeKind => Kind::Metadata(transmute(self)),
+                LLVMTypeKind::LLVMX86_MMXTypeKind => Kind::X86_MMX(transmute(self)),
+                LLVMTypeKind::LLVMTokenTypeKind => Kind::Token(transmute(self)),
+            }
+        }
     }
 }
 
@@ -92,6 +115,14 @@ impl Eq for Type {}
 
 macro_rules! impl_type {
     ($t:ty) => {
+        impl Deref for $t {
+            type Target = Type;
+            
+            fn deref(&self) -> &Self::Target {
+                unsafe { transmute::<&Self, &Self::Target>(self) }
+            }
+        }
+
         impl<'a> Into<&'a $t> for LLVMTypeRef {
             fn into(self) -> &'a $t {
                 unsafe { transmute::<LLVMTypeRef, &$t>(self) }
@@ -106,11 +137,15 @@ macro_rules! impl_type {
             }
         }
 
-        impl Deref for $t {
-            type Target = Type;
-            
-            fn deref(&self) -> &Self::Target {
-                unsafe { transmute::<&Self, &Self::Target>(self) }
+        impl fmt::Display for $t {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                self.deref().fmt(f)
+            }
+}
+
+        impl fmt::Debug for $t {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                write!(f, "llvm::types::{}({})", stringify!($t), self)
             }
         }
     }
@@ -200,15 +235,19 @@ impl_type!(Pointer);
 pub struct Vector(Type);
 impl_type!(Vector);
 
-/// Represents a LLVM Context Type
+/// Trait marking Rust types that have LLVM counterparts
 pub trait ContextType {
-    fn get_type_in_context<'a>(context: &'a Context) -> &'a Type;
+    type LlvmType;
+
+    fn get_type_in_context<'a>(context: &'a Context) -> &'a Self::LlvmType;
 }
 
 macro_rules! impl_context_type {
-    ($t: ty, $to_type_in_context: ident) => {
+    ($t: ty => $llvm_type: ty, $to_type_in_context: ident) => {
         impl ContextType for $t {
-            fn get_type_in_context<'a>(context: &'a Context) -> &'a Type {
+            type LlvmType = $llvm_type;
+
+            fn get_type_in_context<'a>(context: &'a Context) -> &'a Self::LlvmType {
                 unsafe {
                     $to_type_in_context(context.ptr).into()
                 }
@@ -217,19 +256,19 @@ macro_rules! impl_context_type {
     }
 }
 
-impl_context_type!(bool, LLVMInt1TypeInContext);
+impl_context_type!(bool => Integer, LLVMInt1TypeInContext);
 // This might actually not be true, Not sure
-impl_context_type!(char, LLVMInt8TypeInContext);
-impl_context_type!(u8, LLVMInt8TypeInContext);
-impl_context_type!(u16, LLVMInt16TypeInContext);
-impl_context_type!(u32, LLVMInt32TypeInContext);
-impl_context_type!(u64, LLVMInt64TypeInContext);
-impl_context_type!(i8, LLVMInt8TypeInContext);
-impl_context_type!(i16, LLVMInt16TypeInContext);
-impl_context_type!(i32, LLVMInt32TypeInContext);
-impl_context_type!(i64, LLVMInt64TypeInContext);
-impl_context_type!(f32, LLVMFloatTypeInContext);
-impl_context_type!(f64, LLVMDoubleTypeInContext);
+impl_context_type!(char => Integer, LLVMInt8TypeInContext);
+impl_context_type!(u8 => Integer, LLVMInt8TypeInContext);
+impl_context_type!(u16 => Integer, LLVMInt16TypeInContext);
+impl_context_type!(u32 => Integer, LLVMInt32TypeInContext);
+impl_context_type!(u64 => Integer, LLVMInt64TypeInContext);
+impl_context_type!(i8 => Integer, LLVMInt8TypeInContext);
+impl_context_type!(i16 => Integer, LLVMInt16TypeInContext);
+impl_context_type!(i32 => Integer, LLVMInt32TypeInContext);
+impl_context_type!(i64 => Integer, LLVMInt64TypeInContext);
+impl_context_type!(f32 => Float, LLVMFloatTypeInContext);
+impl_context_type!(f64 => Double, LLVMDoubleTypeInContext);
 //TODO: Function Types
 //TODO: Structure Types
 //TODO: Sequential Types
