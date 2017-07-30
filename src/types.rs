@@ -1,3 +1,12 @@
+//! LLVM types.
+//!
+//! LLVM uses a number of base types, which are enumerated by [`Kind`], and of
+//! which [`Type`] acts as the "superclass". See [`Type`] for more
+//! information.
+//!
+//! [`Kind`]: enum.Kind.html
+//! [`Type`]: struct.Type.html
+
 use std::fmt;
 use std::mem::transmute;
 use std::ops::Deref;
@@ -8,7 +17,8 @@ use llvm_sys::*;
 
 use super::*;
 
-/// Enumeration of all the base types of the LLVM type system.
+/// Enumeration of all the base types of the LLVM type system. Used for safe
+/// downcasting of `Type`.
 #[allow(non_camel_case_types)]
 #[derive(Debug)]
 pub enum Kind<'a> {
@@ -31,18 +41,63 @@ pub enum Kind<'a> {
     Token(&'a Token),
 }
 
-/// A generic LLVM type. Should always be used as `&Type`.
+/// The "superclass" of the LLVM base types. Types can only be passed as
+/// immutable references, `&Type`s.
+///
+/// # Ownership
 ///
 /// `Type`s are owned by `Context` instances such that only one instance of a
-/// specific `Type` exists per `Context`, e.g. only 1 `Type` for `i64` exists
-/// per context. `Type`s are also never mutated and never destroyed, living for
-/// the lifetime of the `Context` that owns them.
+/// specific `Type` exists per `Context`, e.g. only 1 `Float` type exists per
+/// `Context`. Once created, `Type`s are never mutated nor destroyed, living
+/// for the lifetime of the `Context` that they belong to.
 ///
-/// In LLVM, there is a heirarchy of types. An `&Type` can be downcast to a
-/// subtype, such as `&Integer`, with the `downcast` method. Downcasting makes
-/// subtype specific methods, such as `width` on `&Integer` available.
-// TODO: mark this as an unsized type
-pub struct Type(LLVMType);
+/// # Construction
+///
+/// `&Type`s can be constructed in two ways: using the `*_type` methods on a
+/// `Context`, or using the `get_type_in_context` function on a type that
+/// supports it, e.g. `i64::get_type_in_context(&context)`.
+///
+/// # Casting to and from Subtypes
+///
+/// Any "subclass" of `Type`, such as `Integer`, can be passed to a parameter
+/// that takes a `Type`, and the zero-cost upcast will be performed implicitly.
+/// Downcasting, on the other hand, is not free, and requires an enum lookup.
+/// Where possible with 0 cost, this crate will return a subclass of `Type`,
+/// e.g. `context.i64_type()` will return an `&Integer`, in order to minimize
+/// the number of downcasts that need to be performed. Downcasting will never
+/// be performed automatically, giving the user more control. In the event that
+/// a `Type` needs to be downcast, it can be performed explicitly with the
+/// [`downcast`] or [`try_as_*`] methods. Downcasting reveals subclass specific
+/// methods, such as `width` on `Integer` types.
+///
+/// # Representation
+///
+/// Because the LLVM C API represents all types as `LLVMTypeRef`s, or `*mut
+/// LLVMType`s (in Rust's type system), these `LLVMTypeRef`s are simply
+/// `transmute`d into `&Type`s, where `Type` is an opaque, unsized type (much
+/// like `str`), and whose lifetimes are tied to the `Context`s that they
+/// belong to. This allows Rust's type system to enforce the behavior of
+/// LLVM types (that they are immutable objects belonging to LLVM contexts)
+/// with zero runtime cost.
+///
+/// Some functions in the C API only expect only `LLVMTypeRef`s that belong to
+/// a specific branch of LLVM's type hierarchy. The [newtype] pattern is used
+/// to model this in Rust with type safety while maintaining 0-cost. [Automatic
+/// deref coercions] allow implicit downcasts to `&Type`s.
+///
+/// # Converting to and from `LLVMTypeRef`
+///
+/// Conversions to and from `LLVMTypeRef`s for `&Type` or a subclass of `&Type`
+/// can be performed with the `From` trait, in case that you need to use
+/// `llvm_sys` functionality that this crate does not cover. These conversions
+/// work for all subclasses of `Type` as well. Note that these conversions are
+/// not necessarily safe, even though they aren't marked as such.
+///
+/// [`downcast`]: #method.downcast
+/// [`try_as_*`]: #method.try_as_void
+/// [newtype]: https://doc.rust-lang.org/book/second-edition/ch19-04-advanced-types.html#using-the-newtype-pattern-for-type-safety-and-abstraction
+/// [Automatic deref coercions]: https://doc.rust-lang.org/book/second-edition/ch15-02-deref.html#implicit-deref-coercions-with-functions-and-methods
+pub struct Type(LLVMType); // TODO: mark this as an unsized type
 
 impl<'a> From<LLVMTypeRef> for &'a Type {
     fn from(ptr: LLVMTypeRef) -> &'a Type {
@@ -57,6 +112,24 @@ impl<'a> From<&'a Type> for LLVMTypeRef {
 }
 
 macro_rules! try_as_fns {
+    ($(pub fn $name:ident -> $variant:tt)*) => {
+        $(
+            /// Attempt a downcast, returning None on failure.
+            ///
+            /// # Example
+            ///
+            /// ```rust
+            /// use llvm::ContextType;
+            ///
+            /// # fn main() {
+            /// # let context = llvm::Context::new();
+            /// let generic_type: &llvm::Type = i16::get_type_in_context(&context); // upcast
+            /// println!("{:?}", generic_type); // width() is not a method for &Type
+            ///
+            /// let t = generic_type.try_as_integer().unwrap();
+            /// println!("{:?} {}", t, t.width());
+            /// # }
+            /// ```
             pub fn $name<'a>(&'a self) -> Option<&'a $variant> {
                 if let Kind::$variant(t) = self.downcast() {
                     Some(t)
@@ -70,10 +143,30 @@ macro_rules! try_as_fns {
 }
 
 impl Type {
+    /// Return true if the type has a known sized. If you have a subclass of
+    /// `Type`, you can assume what the return value of this method would be.
     pub fn is_sized(&self) -> bool {
         unsafe { LLVMTypeIsSized(self.into()) == 1 }
     }
 
+    /// Downcast an `&Type`, returning a variant of `Kind` that encodes the
+    /// type information and contains the result of the downcast.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use llvm::ContextType;
+    ///
+    /// # fn main() {
+    /// # let context = llvm::Context::new();
+    /// let generic_type: &llvm::Type = i16::get_type_in_context(&context); // upcast
+    /// println!("{:?}", generic_type); // width() is not a method for &Type
+    ///
+    /// if let llvm::types::Kind::Integer(t) = generic_type.downcast() {
+    ///     println!("{:?} {}", t, t.width()); // width() can be used on &Integer
+    /// }
+    /// # }
+    /// ```
     pub fn downcast(&self) -> Kind {
         unsafe {
             match LLVMGetTypeKind(self.into()) {
@@ -150,7 +243,7 @@ macro_rules! impl_type {
     ($t:ty) => {
         impl Deref for $t {
             type Target = Type;
-            
+
             fn deref(&self) -> &Self::Target {
                 unsafe { transmute::<&Self, &Self::Target>(self) }
             }
@@ -186,60 +279,74 @@ macro_rules! impl_type {
 
 // Base types:
 
+/// Type with no size
 pub struct Void(Type);
 impl_type!(Void);
 
+/// 16 bit floating point type
 pub struct Half(Type);
 impl_type!(Half);
 
+/// 32 bit floating point type
 pub struct Float(Type);
 impl_type!(Float);
 
+/// 64 bit floating point type
 pub struct Double(Type);
 impl_type!(Double);
 
+/// 80 bit floating point type (X87)
 #[allow(non_camel_case_types)]
 pub struct X86_FP80(Type);
 impl_type!(X86_FP80);
 
+/// 128 bit floating point type (112-bit mantissa)
 #[allow(non_camel_case_types)]
 pub struct FP128(Type);
 impl_type!(FP128);
 
+/// 128 bit floating point type (two 64-bits)
 #[allow(non_camel_case_types)]
 pub struct PPC_FP128(Type);
 impl_type!(PPC_FP128);
 
+/// Labels
 pub struct Label(Type);
 impl_type!(Label);
 
+/// Metadata
 pub struct Metadata(Type);
 impl_type!(Metadata);
 
+/// X86 MMX
 #[allow(non_camel_case_types)]
 pub struct X86_MMX(Type);
 impl_type!(X86_MMX);
 
+/// Tokens
 pub struct Token(Type);
 impl_type!(Token);
 
-/// Integer types are constructed with a size. Construct them with the methods
-/// that `Context` provides.
+/// Aribitrary bit width integers
 pub struct Integer(Type);
 impl_type!(Integer);
 
 impl Integer {
+    /// Returns the bit width of an `Integer` type.
     pub fn width(&self) -> u32 {
         unsafe { LLVMGetIntTypeWidth(self.into()) }
     }
 }
 
-/// A function type is a tuple consisting of a return type and an array of
+/// Function
+///
+/// Function types are tuples consisting of a return type and an array of
 /// parameter types.
 pub struct Function(Type);
 impl_type!(Function);
 
 impl Function {
+    /// Construct a new `Function` type.
     pub fn new<'a>(
         return_type: &'a Type,
         param_types: &[&'a Type],
@@ -256,22 +363,27 @@ impl Function {
     }
 }
 
+/// Structures
 pub struct Struct(Type);
 impl_type!(Struct);
 
+/// Arrays
 pub struct Array(Type);
 impl_type!(Array);
 
+/// Pointers
 pub struct Pointer(Type);
 impl_type!(Pointer);
 
+/// SIMD 'packed' format, or other vector type
 pub struct Vector(Type);
 impl_type!(Vector);
 
-/// Trait marking Rust types that have LLVM counterparts
+/// Trait marking types that can be represented as an LLVM type.
 pub trait ContextType {
     type LlvmType;
 
+    /// Gets a reference to the corresponding LLVM type.
     fn get_type_in_context<'a>(context: &'a Context) -> &'a Self::LlvmType;
 }
 
