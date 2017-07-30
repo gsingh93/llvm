@@ -98,6 +98,8 @@ macro_rules! impl_type {
             }
         }
 
+        // This would not be needed if the compiler could infer that the
+        // From<&Type> for LLVMTypeRef above worked on &SubType.
         impl<'a> From<&'a $t> for LLVMTypeRef {
             fn from(ty: &'a $t) -> LLVMTypeRef {
                 unsafe { transmute::<&$t, LLVMTypeRef>(ty) }
