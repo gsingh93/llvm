@@ -31,7 +31,6 @@ pub enum Kind {
     X86_MMX,
     Token,
 }
-}
 
 /// Should always be used as `&Type`.
 ///
