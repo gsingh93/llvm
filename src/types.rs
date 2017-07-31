@@ -267,7 +267,7 @@ macro_rules! impl_type {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 self.deref().fmt(f)
             }
-}
+        }
 
         impl fmt::Debug for $t {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
