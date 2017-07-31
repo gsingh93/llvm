@@ -399,8 +399,7 @@ macro_rules! impl_context_type {
 }
 
 impl_context_type!(bool => Integer, LLVMInt1TypeInContext);
-// This might actually not be true, Not sure
-impl_context_type!(char => Integer, LLVMInt8TypeInContext);
+impl_context_type!(char => Integer, LLVMInt32TypeInContext);
 impl_context_type!(u8 => Integer, LLVMInt8TypeInContext);
 impl_context_type!(u16 => Integer, LLVMInt16TypeInContext);
 impl_context_type!(u32 => Integer, LLVMInt32TypeInContext);
