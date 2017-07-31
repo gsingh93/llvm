@@ -47,28 +47,23 @@ pub enum Kind<'a> {
 /// # Ownership
 ///
 /// `Type`s are owned by `Context` instances such that only one instance of a
-/// specific `Type` exists per `Context`, e.g. only 1 `Float` type exists per
-/// `Context`. Once created, `Type`s are never mutated nor destroyed, living
-/// for the lifetime of the `Context` that they belong to.
+/// specific `Type` exists per `Context`, e.g. only 1 `Float` instance exists
+/// per `Context`. Once created, `Type`s are never mutated nor destroyed,
+/// living for the lifetime of the `Context` that they belong to.
 ///
 /// # Construction
 ///
 /// `&Type`s can be constructed in two ways: using the `*_type` methods on a
-/// `Context`, or using the `get_type_in_context` function on a type that
-/// supports it, e.g. `i64::get_type_in_context(&context)`.
+/// `Context`, or using the `get_type_in_context` on a type that implements it,
+/// e.g. `i64::get_type_in_context(&context)`.
 ///
 /// # Casting to and from Subtypes
 ///
-/// Any "subclass" of `Type`, such as `Integer`, can be passed to a parameter
-/// that takes a `Type`, and the zero-cost upcast will be performed implicitly.
-/// Downcasting, on the other hand, is not free, and requires an enum lookup.
-/// Where possible with 0 cost, this crate will return a subclass of `Type`,
-/// e.g. `context.i64_type()` will return an `&Integer`, in order to minimize
-/// the number of downcasts that need to be performed. Downcasting will never
-/// be performed automatically, giving the user more control. In the event that
-/// a `Type` needs to be downcast, it can be performed explicitly with the
-/// [`downcast`] or [`try_as_*`] methods. Downcasting reveals subclass specific
-/// methods, such as `width` on `Integer` types.
+/// Any "subclass" of `Type`, such as `Integer`, will be implicitly upcast into
+/// `Type`, where necessary, with zero cost. Going the other way and performing
+/// downcast, on the other hand, requires an enum lookup, meaning it's not
+/// free. Downcasts can only be performed explicitly with the [`downcast`] or
+/// [`try_as_*`] methods.
 ///
 /// # Representation
 ///
@@ -83,15 +78,16 @@ pub enum Kind<'a> {
 /// Some functions in the C API only expect only `LLVMTypeRef`s that belong to
 /// a specific branch of LLVM's type hierarchy. The [newtype] pattern is used
 /// to model this in Rust with type safety while maintaining 0-cost. [Automatic
-/// deref coercions] allow implicit downcasts to `&Type`s.
+/// deref coercions] allow implicit upcasts to `&Type`s.
 ///
 /// # Converting to and from `LLVMTypeRef`
 ///
-/// Conversions to and from `LLVMTypeRef`s for `&Type` or a subclass of `&Type`
+/// Converting `LLVMTypeRef`s to and from `&Type`s or one of it's subclasses
 /// can be performed with the `From` trait, in case that you need to use
-/// `llvm_sys` functionality that this crate does not cover. These conversions
-/// work for all subclasses of `Type` as well. Note that these conversions are
-/// not necessarily safe, even though they aren't marked as such.
+/// `llvm_sys` functionality that this crate does not cover. Note that
+/// converting an `LLVMTypeRef` into an `&Type` this way is not safe, since it
+/// can't enforce lifetimes or types automatically, even though it's not marked
+/// `unsafe`.
 ///
 /// [`downcast`]: #method.downcast
 /// [`try_as_*`]: #method.try_as_void
@@ -114,7 +110,8 @@ impl<'a> From<&'a Type> for LLVMTypeRef {
 macro_rules! try_as_fns {
     ($(pub fn $name:ident -> $variant:tt)*) => {
         $(
-            /// Attempt a downcast, returning None on failure.
+            /// Attempt a downcast, returning `None` if the type of `self`
+            /// doesn't match the type requested.
             ///
             /// # Example
             ///
@@ -143,8 +140,8 @@ macro_rules! try_as_fns {
 }
 
 impl Type {
-    /// Return true if the type has a known sized. If you have a subclass of
-    /// `Type`, you can assume what the return value of this method would be.
+    /// Return true if the type has a known sized. For subclasses of `Type`
+    /// the result of this method can be assumed.
     pub fn is_sized(&self) -> bool {
         unsafe { LLVMTypeIsSized(self.into()) == 1 }
     }
