@@ -36,10 +36,36 @@ impl Context {
         Module { ptr: module }
     }
 
-    pub fn void_type(&self) -> LLVMTypeRef {
-        unsafe {
-            llvm::LLVMVoidTypeInContext(self.ptr)
-        }
+    pub fn void_type<'a>(&'a self) -> &'a types::Void {
+        unsafe { llvm::LLVMVoidTypeInContext(self.ptr).into() }
+    }
+
+    pub fn i1_type(&self) -> &types::Integer {
+        unsafe { llvm::LLVMInt1TypeInContext(self.ptr).into() }
+    }
+
+    pub fn i8_type(&self) -> &types::Integer {
+        unsafe { llvm::LLVMInt8TypeInContext(self.ptr).into() }
+    }
+
+    pub fn i16_type(&self) -> &types::Integer {
+        unsafe { llvm::LLVMInt16TypeInContext(self.ptr).into() }
+    }
+
+    pub fn i32_type(&self) -> &types::Integer {
+        unsafe { llvm::LLVMInt32TypeInContext(self.ptr).into() }
+    }
+
+    pub fn i64_type(&self) -> &types::Integer {
+        unsafe { llvm::LLVMInt64TypeInContext(self.ptr).into() }
+    }
+
+    pub fn i128_type(&self) -> &types::Integer {
+        unsafe { llvm::LLVMInt128TypeInContext(self.ptr).into() }
+    }
+
+    pub fn integer_type(&self, num_bits: u32) -> &types::Integer {
+        unsafe { llvm::LLVMIntTypeInContext(self.ptr, num_bits).into() }
     }
 
     pub fn append_basic_block(&self, func: &mut Function, name: &str) -> LLVMBasicBlockRef {
