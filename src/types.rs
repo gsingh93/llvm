@@ -95,6 +95,11 @@ pub enum Kind<'a> {
 /// [Automatic deref coercions]: https://doc.rust-lang.org/book/second-edition/ch15-02-deref.html#implicit-deref-coercions-with-functions-and-methods
 pub struct Type(LLVMType); // TODO: mark this as an unsized type
 impl_llvm_type_wrapper!(LLVMTypeRef, Type);
+impl_llvm_type_eq!(LLVMTypeRef, Type);
+
+// This counts as the llvm::Type::print method from the C API, though the C++
+// version has more options.
+impl_llvm_type_fmt!(Type, LLVMPrintTypeToString);
 
 macro_rules! try_as_fns {
     ($(pub fn $name:ident -> $variant:tt)*) => {
@@ -197,33 +202,6 @@ impl Type {
         pub fn try_as_token -> Token
     }
 }
-
-// This counts as the llvm::Type::print method from the C API, though the C++
-// version has more options.
-impl fmt::Display for Type {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        unsafe {
-            let s_ptr = LLVMPrintTypeToString(self.into());
-            let r = write!(f, "{}", c_str_to_str!(s_ptr));
-            LLVMDisposeMessage(s_ptr);
-            r
-        }
-    }
-}
-
-impl fmt::Debug for Type {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "llvm::Type({})", self)
-    }
-}
-
-impl PartialEq for Type {
-    fn eq(&self, other: &Self) -> bool {
-        LLVMTypeRef::from(self) == LLVMTypeRef::from(other)
-    }
-}
-
-impl Eq for Type {}
 
 macro_rules! impl_type {
     ($t:ty, $test_name:ident) => {
