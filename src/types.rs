@@ -94,18 +94,7 @@ pub enum Kind<'a> {
 /// [newtype]: https://doc.rust-lang.org/book/second-edition/ch19-04-advanced-types.html#using-the-newtype-pattern-for-type-safety-and-abstraction
 /// [Automatic deref coercions]: https://doc.rust-lang.org/book/second-edition/ch15-02-deref.html#implicit-deref-coercions-with-functions-and-methods
 pub struct Type(LLVMType); // TODO: mark this as an unsized type
-
-impl<'a> From<LLVMTypeRef> for &'a Type {
-    fn from(ptr: LLVMTypeRef) -> &'a Type {
-        unsafe { transmute::<LLVMTypeRef, &Type>(ptr) }
-    }
-}
-
-impl<'a> From<&'a Type> for LLVMTypeRef {
-    fn from(ty: &'a Type) -> LLVMTypeRef {
-        unsafe { transmute::<&Type, LLVMTypeRef>(ty) }
-    }
-}
+impl_llvm_type_wrapper!(LLVMTypeRef, Type);
 
 macro_rules! try_as_fns {
     ($(pub fn $name:ident -> $variant:tt)*) => {
@@ -209,7 +198,7 @@ impl Type {
     }
 }
 
-// This counts as the llvm::Type::print method from the C++ API, though the C++
+// This counts as the llvm::Type::print method from the C API, though the C++
 // version has more options.
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
