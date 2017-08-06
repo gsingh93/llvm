@@ -18,4 +18,4 @@ appveyor = { repository = "gsingh93/llvm" }
 [dependencies]
 llvm-sys = "*"
 libc = "*"
-
+error-chain = "^0.10"

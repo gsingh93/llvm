@@ -3,6 +3,8 @@ use llvm_sys::target_machine::*;
 use llvm_sys::target::*;
 use super::*;
 
+error_chain! {}
+
 #[derive(Debug)]
 pub struct Target {
     ptr: LLVMTargetRef,
@@ -73,7 +75,7 @@ impl TargetMachine {
     pub fn emit_to_file(&mut self,
                         module: &mut Module,
                         path: &str,
-                        file_type: LLVMCodeGenFileType) -> Result<(), &'static str> {
+                        file_type: LLVMCodeGenFileType) -> Result<()> {
             let c_path = CString::new(path).unwrap();
             let mut em: usize = 0;
             let em_ptr: *mut usize = &mut em;
@@ -86,7 +88,7 @@ impl TargetMachine {
                 if em == 0 { // no error message was set
                     Ok(())
                 } else {
-                    Err(c_str_to_str!(em as *const i8))
+                    Err(c_str_to_str!(em as *const i8).into())
                 }
             }
     }
