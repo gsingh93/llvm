@@ -237,7 +237,7 @@ impl PartialEq for Type {
 impl Eq for Type {}
 
 macro_rules! impl_type {
-    ($t:ty) => {
+    ($t:ty, $test_name:ident) => {
         impl Deref for $t {
             type Target = Type;
 
@@ -271,6 +271,14 @@ macro_rules! impl_type {
                 write!(f, "llvm::types::{}({})", stringify!($t), self)
             }
         }
+
+        #[test]
+        fn $test_name() {
+            use std::mem;
+            assert_eq!(mem::align_of::<LLVMTypeRef>(), mem::align_of::<&$t>());
+            assert_eq!(mem::size_of::<LLVMTypeRef>(), mem::size_of::<&$t>());
+        }
+
     }
 }
 
@@ -278,55 +286,55 @@ macro_rules! impl_type {
 
 /// Type with no size
 pub struct Void(Type);
-impl_type!(Void);
+impl_type!(Void, void_transmutes_to_type_ref);
 
 /// 16 bit floating point type
 pub struct Half(Type);
-impl_type!(Half);
+impl_type!(Half, half_transmutes_to_type_ref);
 
 /// 32 bit floating point type
 pub struct Float(Type);
-impl_type!(Float);
+impl_type!(Float, float_transmutes_to_type_ref);
 
 /// 64 bit floating point type
 pub struct Double(Type);
-impl_type!(Double);
+impl_type!(Double, double_transmutes_to_type_ref);
 
 /// 80 bit floating point type (X87)
 #[allow(non_camel_case_types)]
 pub struct X86_FP80(Type);
-impl_type!(X86_FP80);
+impl_type!(X86_FP80, x86_fp80_transmutes_to_type_ref);
 
 /// 128 bit floating point type (112-bit mantissa)
 #[allow(non_camel_case_types)]
 pub struct FP128(Type);
-impl_type!(FP128);
+impl_type!(FP128, fp128_transmutes_to_type_ref);
 
 /// 128 bit floating point type (two 64-bits)
 #[allow(non_camel_case_types)]
 pub struct PPC_FP128(Type);
-impl_type!(PPC_FP128);
+impl_type!(PPC_FP128, ppc_fp128_transmutes_to_type_ref);
 
 /// Labels
 pub struct Label(Type);
-impl_type!(Label);
+impl_type!(Label, label_transmutes_to_type_ref);
 
 /// Metadata
 pub struct Metadata(Type);
-impl_type!(Metadata);
+impl_type!(Metadata, metadata_transmutes_to_type_ref);
 
 /// X86 MMX
 #[allow(non_camel_case_types)]
 pub struct X86_MMX(Type);
-impl_type!(X86_MMX);
+impl_type!(X86_MMX, x86_mmx_transmutes_to_type_ref);
 
 /// Tokens
 pub struct Token(Type);
-impl_type!(Token);
+impl_type!(Token, token_transmutes_to_type_ref);
 
 /// Aribitrary bit width integers
 pub struct Integer(Type);
-impl_type!(Integer);
+impl_type!(Integer, integer_transmutes_to_type_ref);
 
 impl Integer {
     /// Returns the bit width of an `Integer` type.
@@ -340,7 +348,7 @@ impl Integer {
 /// Function types are tuples consisting of a return type and an array of
 /// parameter types.
 pub struct Function(Type);
-impl_type!(Function);
+impl_type!(Function, function_transmutes_to_type_ref);
 
 impl Function {
     /// Construct a new `Function` type.
@@ -362,19 +370,19 @@ impl Function {
 
 /// Structures
 pub struct Struct(Type);
-impl_type!(Struct);
+impl_type!(Struct, struct_transmutes_to_type_ref);
 
 /// Arrays
 pub struct Array(Type);
-impl_type!(Array);
+impl_type!(Array, array_transmutes_to_type_ref);
 
 /// Pointers
 pub struct Pointer(Type);
-impl_type!(Pointer);
+impl_type!(Pointer, pointer_transmutes_to_type_ref);
 
 /// SIMD 'packed' format, or other vector type
 pub struct Vector(Type);
-impl_type!(Vector);
+impl_type!(Vector, vector_transmutes_to_type_ref);
 
 /// Trait marking types that can be represented as an LLVM type.
 pub trait ContextType {
