@@ -20,6 +20,13 @@ impl Context {
         };
         Context { ptr: context }
     }
+    pub fn global() -> Self {
+        unsafe {
+            Context {
+                ptr: llvm::LLVMGetGlobalContext()
+            }
+        }
+    }
 
     pub fn create_builder(&self) -> Builder {
         let builder = unsafe {
@@ -87,5 +94,12 @@ impl Drop for Context {
         unsafe {
             llvm::LLVMContextDispose(self.ptr);
         }
+    }
+}
+
+impl Default for Context {
+    /// Returns the global context
+    fn default() -> Self {
+        Context::global()
     }
 }
