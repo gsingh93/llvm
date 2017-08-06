@@ -1,3 +1,10 @@
+#![doc(test(attr(allow(unused_variables), deny(warnings))))]
+#![deny(missing_debug_implementations,
+        trivial_numeric_casts,
+        unused_import_braces,
+        unused_qualifications)]
+
+
 extern crate libc;
 extern crate llvm_sys;
 

@@ -44,6 +44,20 @@ impl Module {
         }
     }
 
+    /// Prints a module to a file
+    ///
+    /// ```rust
+    /// use llvm::Context;
+    ///
+    /// let context = Context::global();
+    /// let module = context.module_create_with_name("name");
+    /// let path = "./module_file";
+    ///
+    /// module.print_to_file(path).unwrap();
+    ///
+    /// assert!(std::path::Path::new(path).exists());
+    /// std::fs::remove_file(path).unwrap()
+    /// ```
     pub fn print_to_file(&self, path: &str) -> Result<(), &'static str> {
         let c_path = CString::new(path).unwrap();
         let mut em: usize = 0;
@@ -66,8 +80,8 @@ impl fmt::Display for Module {
             let len = libc::strlen(c_str);
             let s = String::from_raw_parts(
                 c_str as *mut u8,
-                (len + 1) as usize,
-                (len + 1) as usize
+                len + 1,
+                len + 1
             );
             write!(f, "{}", s)
         }
