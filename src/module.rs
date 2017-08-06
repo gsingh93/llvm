@@ -7,6 +7,8 @@ use llvm_sys::core as llvm;
 
 use super::*;
 
+use std::path::Path;
+
 // No `Drop` impl is needed as this is disposed of when the associated context is disposed
 #[derive(Debug)]
 pub struct Module {
@@ -58,8 +60,9 @@ impl Module {
     /// assert!(std::path::Path::new(path).exists());
     /// std::fs::remove_file(path).unwrap()
     /// ```
-    pub fn print_to_file(&self, path: &str) -> Result<(), &'static str> {
-        let c_path = CString::new(path).unwrap();
+    pub fn print_to_file<P: AsRef<Path>>(&self, path: P) -> Result<(), &'static str> {
+        let str_path = path.as_ref().to_str().expect("Failed to convert path to unicode");
+        let c_path = CString::new(str_path).unwrap();
         let mut em: usize = 0;
         let em_ptr: *mut usize = &mut em;
         unsafe {
