@@ -1,5 +1,6 @@
 #![doc(test(attr(allow(unused_variables), deny(warnings))))]
-#![allow(unused_doc_comment)]
+
+#![cfg_attr(nightly, allow(unused_doc_comment))]
 #![deny(warnings,
         missing_debug_implementations,
         trivial_numeric_casts,
