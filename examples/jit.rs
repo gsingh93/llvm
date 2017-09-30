@@ -24,7 +24,7 @@ fn main() {
     let y = func.get_param(1).unwrap();
     let z = func.get_param(2).unwrap();
 
-    let b = context.cons(20i8);
+    let b = context.cons(20i64);
 
     let s1 = builder.build_add(x, b, "s1");
     let s2 = builder.build_add(y, s1, "s2");
