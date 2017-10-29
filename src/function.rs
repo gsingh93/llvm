@@ -1,5 +1,5 @@
 use llvm_sys::prelude::*;
-use llvm_sys::core as llvm;
+use llvm_sys::core::*;
 
 #[derive(Debug)]
 pub struct Function {
@@ -24,7 +24,7 @@ impl Function {
     // call func.params().nth(1) and call this function
     pub fn get_param(&self, index: u32) -> Option<LLVMValueRef> {
         let p = unsafe {
-            llvm::LLVMGetParam(self.ptr, index)
+            LLVMGetParam(self.ptr, index)
         };
 
         if p.is_null() {
@@ -34,6 +34,11 @@ impl Function {
         }
     }
 
+    pub fn count_basic_blocks(&self) -> u32 {
+        unsafe {
+            LLVMCountBasicBlocks(self.ptr)
+        }
+    }
 }
 
 
@@ -49,9 +54,9 @@ impl Iterator for FunctionParamIter {
 
     fn next(&mut self) -> Option<LLVMValueRef> {
         self.arg = if self.first {
-            unsafe { llvm::LLVMGetFirstParam(self.arg) }
+            unsafe { LLVMGetFirstParam(self.arg) }
         } else {
-            unsafe { llvm::LLVMGetNextParam(self.arg) }
+            unsafe { LLVMGetNextParam(self.arg) }
         };
 
         if self.arg.is_null() {
