@@ -188,7 +188,7 @@ impl Builder {
         }
     }
 
-    pub fn build_call(&mut self, func: Function, mut args: Vec<LLVMValueRef>,
+    pub fn build_call(&mut self, func: &Function, mut args: Vec<LLVMValueRef>,
                       name: &str) -> LLVMValueRef {
         let c_name = CString::new(name).unwrap();
         unsafe {
