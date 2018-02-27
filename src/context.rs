@@ -75,7 +75,7 @@ impl Context {
         unsafe { llvm::LLVMIntTypeInContext(self.ptr, num_bits).into() }
     }
 
-    pub fn append_basic_block(&self, func: &mut Function, name: &str) -> LLVMBasicBlockRef {
+    pub fn append_basic_block(&self, func: &Function, name: &str) -> LLVMBasicBlockRef {
         let c_name = CString::new(name).unwrap();
         unsafe {
             llvm::LLVMAppendBasicBlockInContext(self.ptr, func.ptr, c_name.as_ptr())
