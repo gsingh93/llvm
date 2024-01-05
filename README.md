@@ -1,5 +1,5 @@
 # LLVM Rust bindings
-[![crates-badge][]][crates] [![travis-badge][]][travis] [![appveyor-badge][]][appveyor] [![coveralls-badge][]][coveralls] [![license-badge][]][license] [![gitter-badge][]][gitter]
+[![crates-badge][]][crates] [![coveralls-badge][]][coveralls] [![license-badge][]][license] [![gitter-badge][]][gitter]
 
 This library is intended to be a safe wrapper around the [llvm-sys bindings](https://crates.io/crates/llvm-sys).
 It is currently very incomplete however it is possible to use this and `llvm-sys` at the same time, most structures
