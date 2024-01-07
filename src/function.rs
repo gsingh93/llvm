@@ -1,18 +1,21 @@
-use llvm_sys::prelude::*;
-use llvm_sys::core::*;
 
-#[derive(Debug)]
+use llvm_sys::{prelude::*, core::*};
+use derive_more::{Deref, DerefMut};
+
+
+// TODO Documentation
+#[derive(Debug, Deref, DerefMut)]
 pub struct Function {
     pub ptr: LLVMValueRef,
 }
 
 impl Function {
-    pub fn from_value_ref(p: LLVMValueRef) -> Function {
-        Function {
-            ptr: p
-        }
+    // TODO Documentation
+    pub fn from_value_ref(ptr: LLVMValueRef) -> Function {
+        Function { ptr }
     }
 
+    // TODO Documentation
     pub fn params(&self) -> FunctionParamIter {
         FunctionParamIter {
             arg: self.ptr,
@@ -22,18 +25,20 @@ impl Function {
 
     // TODO: Check if there is an optimization so that we could
     // call func.params().nth(1) and call this function
+    // TODO Documentation
     pub fn get_param(&self, index: u32) -> Option<LLVMValueRef> {
-        let p = unsafe {
+        let param = unsafe {
             LLVMGetParam(self.ptr, index)
         };
 
-        if p.is_null() {
+        if param.is_null() {
             return None;
         } else  {
-            return Some(p);
+            return Some(param);
         }
     }
 
+    // TODO Documentation
     pub fn count_basic_blocks(&self) -> u32 {
         unsafe {
             LLVMCountBasicBlocks(self.ptr)
@@ -42,6 +47,7 @@ impl Function {
 }
 
 
+// TODO Documentation
 #[derive(Debug)]
 pub struct FunctionParamIter {
     arg: LLVMValueRef,
@@ -49,6 +55,7 @@ pub struct FunctionParamIter {
 }
 
 // TODO: Needs testing
+// TODO Documentation
 impl Iterator for FunctionParamIter {
     type Item = LLVMValueRef;
 

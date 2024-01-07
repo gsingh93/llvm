@@ -1,25 +1,28 @@
+
 use llvm_sys::prelude::*;
 use llvm_sys::core as llvm;
 
-use super::*;
+use derive_more::{Deref, DerefMut};
 
-use value::IntoConstValue;
+use super::{*, value::IntoConstValue};
 
-// LLVM Wrappers
 
-#[derive(Debug)]
+// TODO Documentation
+#[derive(Debug, Deref, DerefMut)]
 pub struct Context {
     pub ptr: LLVMContextRef
 }
-map_to_llvm!(Context, LLVMContextRef);
+configure_wrapper!(Context, LLVMContextRef);
 
 impl Context {
+    // TODO Documentation
     pub fn new() -> Self {
         let context = unsafe {
             llvm::LLVMContextCreate()
         };
         Context { ptr: context }
     }
+    // TODO Documentation
     pub fn global() -> Self {
         unsafe {
             Context {
@@ -28,6 +31,7 @@ impl Context {
         }
     }
 
+    // TODO Documentation
     pub fn create_builder(&self) -> Builder {
         let builder = unsafe {
             llvm::LLVMCreateBuilderInContext(self.ptr)
@@ -35,6 +39,7 @@ impl Context {
         Builder { ptr: builder }
     }
 
+    // TODO Documentation
     pub fn module_create_with_name(&self, name: &str) -> Module {
         let c_name = CString::new(name).unwrap();
         let module = unsafe {
@@ -43,38 +48,47 @@ impl Context {
         Module { ptr: module }
     }
 
+    // TODO Documentation
     pub fn void_type<'a>(&'a self) -> &'a types::Void {
         unsafe { llvm::LLVMVoidTypeInContext(self.ptr).into() }
     }
 
+    // TODO Documentation
     pub fn i1_type(&self) -> &types::Integer {
         unsafe { llvm::LLVMInt1TypeInContext(self.ptr).into() }
     }
 
+    // TODO Documentation
     pub fn i8_type(&self) -> &types::Integer {
         unsafe { llvm::LLVMInt8TypeInContext(self.ptr).into() }
     }
 
+    // TODO Documentation
     pub fn i16_type(&self) -> &types::Integer {
         unsafe { llvm::LLVMInt16TypeInContext(self.ptr).into() }
     }
 
+    // TODO Documentation
     pub fn i32_type(&self) -> &types::Integer {
         unsafe { llvm::LLVMInt32TypeInContext(self.ptr).into() }
     }
 
+    // TODO Documentation
     pub fn i64_type(&self) -> &types::Integer {
         unsafe { llvm::LLVMInt64TypeInContext(self.ptr).into() }
     }
 
+    // TODO Documentation
     pub fn i128_type(&self) -> &types::Integer {
         unsafe { llvm::LLVMInt128TypeInContext(self.ptr).into() }
     }
 
+    // TODO Documentation
     pub fn integer_type(&self, num_bits: u32) -> &types::Integer {
         unsafe { llvm::LLVMIntTypeInContext(self.ptr, num_bits).into() }
     }
 
+    // TODO Documentation
     pub fn append_basic_block(&self, func: &mut Function, name: &str) -> LLVMBasicBlockRef {
         let c_name = CString::new(name).unwrap();
         unsafe {
@@ -82,8 +96,7 @@ impl Context {
         }
     }
 
-    /// Creates a constant in this context
-    /// The value must implement the trait `IntoValue`
+    /// Creates a constant in this context. The value must implement the trait `IntoConstValue`
     pub fn cons<T: IntoConstValue>(&self, val: T) -> LLVMValueRef {
         val.gen_const(self)
     }
@@ -98,8 +111,6 @@ impl Drop for Context {
 }
 
 impl Default for Context {
-    /// Returns the global context
-    fn default() -> Self {
-        Context::global()
-    }
+    fn default() -> Self { Context::global() }
 }
+

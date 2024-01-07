@@ -16,7 +16,7 @@ use std::path::Path;
 pub struct Module {
     pub ptr: LLVMModuleRef
 }
-map_to_llvm!(Module, LLVMModuleRef);
+configure_wrapper!(Module, LLVMModuleRef);
 
 impl Module {
     // TODO Documentation

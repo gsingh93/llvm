@@ -2,12 +2,13 @@ use llvm_sys::execution_engine::*;
 use super::*;
 use std::mem;
 
+use derive_more::{Deref, DerefMut};
 
-#[derive(Debug)]
+#[derive(Debug, Deref, DerefMut)]
 pub struct ExecutionEngine {
     pub ptr: LLVMExecutionEngineRef,
 }
-map_to_llvm!(ExecutionEngine, LLVMExecutionEngineRef);
+configure_wrapper!(ExecutionEngine, LLVMExecutionEngineRef);
 
 impl ExecutionEngine {
     pub fn create_for_module(module: &Module) -> Result<ExecutionEngine, anyhow::Error> {
@@ -50,7 +51,5 @@ impl Drop for ExecutionEngine {
 }
 
 pub fn link_in_mcjit() {
-    unsafe {
-        LLVMLinkInMCJIT();
-    }
+    unsafe { LLVMLinkInMCJIT(); }
 }

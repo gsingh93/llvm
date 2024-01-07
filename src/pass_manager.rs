@@ -1,12 +1,13 @@
 use llvm_sys::core as llvm;
 use llvm_sys::prelude::*;
+use derive_more::{Deref, DerefMut};
 
 // TODO Documentation
-#[derive(Debug)]
+#[derive(Debug, Deref, DerefMut)]
 pub struct PassManager {
     pub ptr: LLVMPassManagerRef,
 }
-map_to_llvm!(PassManager, LLVMPassManagerRef);
+configure_wrapper!(PassManager, LLVMPassManagerRef);
 
 // TODO Documentation
 impl PassManager {

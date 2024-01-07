@@ -1,6 +1,8 @@
-use llvm_sys::*;
-use llvm_sys::prelude::*;
+
+use llvm_sys::{*, prelude::*};
 use llvm_sys::core as llvm;
+
+use derive_more::{Deref, DerefMut};
 
 use super::*;
 
@@ -31,11 +33,20 @@ macro_rules! build_op {
     }
 }
 
-#[derive(Debug)]
+// TODO Documentation
+#[derive(Debug, Deref, DerefMut)]
 pub struct Builder {
     pub ptr: LLVMBuilderRef
 }
-map_to_llvm!(Builder, LLVMBuilderRef);
+configure_wrapper!(Builder, LLVMBuilderRef);
+impl Drop for Builder {
+    fn drop(&mut self) {
+        unsafe {
+            llvm::LLVMDisposeBuilder(self.ptr);
+        }
+    }
+}
+
 
 // http://llvm.org/docs/doxygen/html/group__LLVMCCoreInstructionBuilder.html
 //TODO: Get/Set Volatile
@@ -216,14 +227,6 @@ impl Builder {
         let c_name = CString::new(name).unwrap();
         unsafe {
             llvm::LLVMBuildGEP(self.ptr, ptr, indices.as_mut_ptr(), indices.len() as u32, c_name.as_ptr())
-        }
-    }
-}
-
-impl Drop for Builder {
-    fn drop(&mut self) {
-        unsafe {
-            llvm::LLVMDisposeBuilder(self.ptr);
         }
     }
 }

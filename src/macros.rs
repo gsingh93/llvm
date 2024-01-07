@@ -1,25 +1,21 @@
 // TODO: This could be named better: impl from
 // TODO Documentation
-macro_rules! map_to_llvm {
+macro_rules! configure_wrapper {
     ($dest: tt, $ref: ty) => {
         impl From<$ref> for $dest {
             fn from(ptr: $ref) -> Self {
-                $dest {
-                    ptr: ptr,
-                }
+                $dest { ptr }
             }
         }
 
         impl From<$dest> for $ref {
-            fn from(s: $dest) -> Self {
-                s.ptr
-            }
+            fn from(s: $dest) -> Self { s.ptr }
         }
     }
 }
 
 // TODO Documentation
-macro_rules! impl_llvm_type_wrapper {
+macro_rules! impl_from {
     ($llvm: ty, $our: ty) => {
         impl<'a> From<$llvm> for &'a $our {
             fn from(ptr: $llvm) -> &'a $our {
@@ -48,7 +44,7 @@ macro_rules! impl_llvm_type_wrapper {
 }
 
 // TODO Documentation
-macro_rules! impl_llvm_type_eq {
+macro_rules! impl_eq {
     ($llvm: tt, $our: ty) => {
         impl PartialEq for $our {
             fn eq(&self, other: &Self) -> bool {
@@ -61,7 +57,7 @@ macro_rules! impl_llvm_type_eq {
 }
 
 // TODO Documentation
-macro_rules! impl_llvm_type_fmt {
+macro_rules! impl_fmt {
     ($our: ty, $to_string: ident) => {
         impl ::std::fmt::Debug for $our {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {

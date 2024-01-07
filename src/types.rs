@@ -7,7 +7,7 @@
 //! [`Kind`]: enum.Kind.html
 //! [`Type`]: struct.Type.html
 
-use std::fmt;
+use std::fmt::{Display, Debug, Formatter, Result};
 use std::mem::transmute;
 use std::ops::Deref;
 
@@ -94,12 +94,12 @@ pub enum Kind<'a> {
 /// [newtype]: https://doc.rust-lang.org/book/second-edition/ch19-04-advanced-types.html#using-the-newtype-pattern-for-type-safety-and-abstraction
 /// [Automatic deref coercions]: https://doc.rust-lang.org/book/second-edition/ch15-02-deref.html#implicit-deref-coercions-with-functions-and-methods
 pub struct Type(LLVMType); // TODO: mark this as an unsized type
-impl_llvm_type_wrapper!(LLVMTypeRef, Type);
-impl_llvm_type_eq!(LLVMTypeRef, Type);
+impl_from!(LLVMTypeRef, Type);
+impl_eq!(LLVMTypeRef, Type);
 
 // This counts as the llvm::Type::print method from the C API, though the C++
 // version has more options.
-impl_llvm_type_fmt!(Type, LLVMPrintTypeToString);
+impl_fmt!(Type, LLVMPrintTypeToString);
 
 macro_rules! try_as_fns {
     ($(pub fn $name:ident -> $variant:tt)*) => {
@@ -229,14 +229,14 @@ macro_rules! impl_type {
             }
         }
 
-        impl fmt::Display for $t {
-            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                self.deref().fmt(f)
+        impl Display for $t {
+            fn fmt(&self, f: &mut Formatter) -> Result {
+                Debug::fmt(&self, f)
             }
         }
 
-        impl fmt::Debug for $t {
-            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        impl Debug for $t {
+            fn fmt(&self, f: &mut Formatter) -> Result {
                 write!(f, "llvm::types::{}({})", stringify!($t), self)
             }
         }

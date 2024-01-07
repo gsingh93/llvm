@@ -1,18 +1,20 @@
 
 use std::ffi::{CString, CStr};
-use llvm_sys::target_machine::*;
-use llvm_sys::target::*;
+use llvm_sys::{target_machine::*, target::*};
+
+use derive_more::{Deref, DerefMut};
+
 use super::*;
 
 //use anyhow::anyhow;
 
 
 /// TODO Documentation
-#[derive(Debug)]
+#[derive(Debug, Deref, DerefMut)]
 pub struct Target {
     ptr: LLVMTargetRef,
 }
-map_to_llvm!(Target, LLVMTargetRef);
+configure_wrapper!(Target, LLVMTargetRef);
 
 impl Target {
     /// TODO Documentation
