@@ -9,29 +9,24 @@ use super::*;
 
 use std::path::Path;
 
-error_chain! {
-    errors {
-        ModulePrintFile(t: String) {
-            description("Error while printing module to file")
-            display("Error while printing module to file: '{}'", t)
-        }
-    }
-}
 
 // No `Drop` impl is needed as this is disposed of when the associated context is disposed
+// TODO Documentation
 #[derive(Debug)]
 pub struct Module {
     pub ptr: LLVMModuleRef
 }
-impl_llvm_ref!(Module, LLVMModuleRef);
+map_to_llvm!(Module, LLVMModuleRef);
 
 impl Module {
+    // TODO Documentation
     pub fn dump(&self) {
         unsafe {
             llvm::LLVMDumpModule(self.ptr)
         }
     }
 
+    // TODO Documentation
     pub fn add_function(&mut self, func_ty: &types::Function, name: &str) -> Function {
         let c_name = CString::new(name).unwrap();
         let p = unsafe {
@@ -42,6 +37,7 @@ impl Module {
         }
     }
 
+    // TODO Documentation
     pub fn get_named_function(&mut self, name: &str) -> Option<Function> {
         let c_name = CString::new(name).unwrap();
         let res = unsafe {
@@ -69,7 +65,7 @@ impl Module {
     /// assert!(std::path::Path::new(path).exists());
     /// std::fs::remove_file(path).unwrap()
     /// ```
-    pub fn print_to_file<P: AsRef<Path>>(&self, path: P) -> Result<()> {
+    pub fn print_to_file<P: AsRef<Path>>(&self, path: P) -> Result<(), anyhow::Error> {
         let str_path = path.as_ref().to_str().expect("Failed to convert path to unicode");
         let c_path = CString::new(str_path).unwrap();
         let mut em: usize = 0;
@@ -79,7 +75,7 @@ impl Module {
             if em == 0 { // no error message was set
                 Ok(())
             } else {
-                Err(ErrorKind::ModulePrintFile(c_str_to_str!(em as *const i8).into()).into())
+                Err(anyhow::anyhow!(c_str_to_str!(em as *const i8).to_string()))
             }
         }
     }

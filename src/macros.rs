@@ -1,5 +1,6 @@
-// TODO: This could be named better
-macro_rules! impl_llvm_ref {
+// TODO: This could be named better: impl from
+// TODO Documentation
+macro_rules! map_to_llvm {
     ($dest: tt, $ref: ty) => {
         impl From<$ref> for $dest {
             fn from(ptr: $ref) -> Self {
@@ -17,6 +18,7 @@ macro_rules! impl_llvm_ref {
     }
 }
 
+// TODO Documentation
 macro_rules! impl_llvm_type_wrapper {
     ($llvm: ty, $our: ty) => {
         impl<'a> From<$llvm> for &'a $our {
@@ -45,6 +47,7 @@ macro_rules! impl_llvm_type_wrapper {
     }
 }
 
+// TODO Documentation
 macro_rules! impl_llvm_type_eq {
     ($llvm: tt, $our: ty) => {
         impl PartialEq for $our {
@@ -57,6 +60,7 @@ macro_rules! impl_llvm_type_eq {
     }
 }
 
+// TODO Documentation
 macro_rules! impl_llvm_type_fmt {
     ($our: ty, $to_string: ident) => {
         impl ::std::fmt::Debug for $our {

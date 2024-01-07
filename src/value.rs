@@ -11,24 +11,26 @@ impl_llvm_type_eq!(LLVMValueRef, Value);
 impl_llvm_type_fmt!(Value, LLVMPrintValueToString);
 
 impl Value {
+    // TODO Documentation
     pub fn set_name(&mut self, name: &str) {
         let c_name = CString::new(name).unwrap();
         unsafe {
-            LLVMSetValueName(self.into(), c_name.as_ptr());
+            LLVMSetValueName2(self.into(), c_name.as_ptr(), name.len().into());
         }
     }
 
-    // TODO: This &mut is unecessary
-    pub fn name(&mut self) -> String {
+    // TODO Documentation
+    pub fn name(&self) -> String {
         unsafe {
-            let c_str = LLVMGetValueName(self.into());
-            let len = libc::strlen(c_str);
-            String::from_raw_parts(c_str as *mut u8, len + 1, len + 1)
+            let mut length: libc::size_t = 0;
+            let c_name = LLVMGetValueName2(self.into(), &mut length);
+            String::from_raw_parts(c_name as *mut u8, length + 1, length + 1)
         }
     }
 }
 
 
+// TODO Reorganize tests
 #[cfg(test)]
 mod tests {
     use super::Context;
@@ -53,32 +55,31 @@ pub trait IntoConstValue: ContextType {
     fn gen_const(self, context: &Context) -> LLVMValueRef;
 }
 
+// TODO Documentation
 macro_rules! impl_const_value {
-    // TODO: this `tt` should be a `ty`, for some reason this causes
-    // the macro to fail, we should file a bug report
-    (UINT: $t: tt) => {
+    (UINT: $t: ty) => {
         impl IntoConstValue for $t {
             fn gen_const(self, context: &Context) -> LLVMValueRef {
                 unsafe {
-                    LLVMConstInt($t::get_type_in_context(context).into(), self.into(), 0)
+                    LLVMConstInt(<$t>::get_type_in_context(context).into(), self.into(), 0)
                 }
             }
         }
     };
-    (INT: $t: tt) => {
+    (INT: $t: ty) => {
         impl IntoConstValue for $t {
             fn gen_const(self, context: &Context) -> LLVMValueRef {
                 unsafe {
-                    LLVMConstInt($t::get_type_in_context(context).into(), self as u64, 1)
+                    LLVMConstInt(<$t>::get_type_in_context(context).into(), self as u64, 1)
                 }
             }
         }
     };
-    (FLOAT: $t: tt) => {
+    (FLOAT: $t: ty) => {
         impl IntoConstValue for $t {
             fn gen_const(self, context: &Context) -> LLVMValueRef {
                 unsafe {
-                    LLVMConstReal($t::get_type_in_context(context).into(), self.into())
+                    LLVMConstReal(<$t>::get_type_in_context(context).into(), self.into())
                 }
             }
         }

@@ -1,18 +1,9 @@
-#![doc(test(attr(allow(unused_variables), deny(warnings))))]
-
-#![cfg_attr(nightly, allow(unused_doc_comment))]
-#![deny(warnings,
-        missing_debug_implementations,
-        trivial_numeric_casts,
-        unused_import_braces,
-        unused_qualifications)]
 
 
 extern crate libc;
 extern crate llvm_sys;
+extern crate anyhow;
 
-#[macro_use]
-extern crate error_chain;
 
 use std::ffi::{CString, CStr};
 

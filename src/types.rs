@@ -17,8 +17,8 @@ use llvm_sys::*;
 
 use super::*;
 
-/// Enumeration of all the base types of the LLVM type system. Used for safe
-/// downcasting of `Type`.
+/// Enumeration of all the base types of the LLVM type system.
+/// Used for safe downcasting of `Type`.
 #[allow(non_camel_case_types)]
 #[derive(Debug)]
 pub enum Kind<'a> {
@@ -178,6 +178,8 @@ impl Type {
                 LLVMTypeKind::LLVMMetadataTypeKind => Kind::Metadata(transmute(self)),
                 LLVMTypeKind::LLVMX86_MMXTypeKind => Kind::X86_MMX(transmute(self)),
                 LLVMTypeKind::LLVMTokenTypeKind => Kind::Token(transmute(self)),
+
+                _ => todo![]    // TODO: Other match arms
             }
         }
     }

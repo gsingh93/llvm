@@ -1,12 +1,14 @@
 use llvm_sys::core as llvm;
 use llvm_sys::prelude::*;
 
+// TODO Documentation
 #[derive(Debug)]
 pub struct PassManager {
     pub ptr: LLVMPassManagerRef,
 }
-impl_llvm_ref!(PassManager, LLVMPassManagerRef);
+map_to_llvm!(PassManager, LLVMPassManagerRef);
 
+// TODO Documentation
 impl PassManager {
     pub fn new() -> PassManager {
         PassManager {
