@@ -15,29 +15,27 @@ macro_rules! configure_wrapper {
 }
 
 // TODO Documentation
+// TODO DEBUG
 macro_rules! impl_from {
-    ($llvm: ty, $our: ty) => {
-        impl<'a> From<$llvm> for &'a $our {
-            fn from(ptr: $llvm) -> &'a $our {
-                unsafe { ::std::mem::transmute::<$llvm, &$our>(ptr) }
+    ($llvm: ty, $wrap: ty) => {
+        impl<'a> From<$llvm> for &'a $wrap {
+            fn from(ptr: $llvm) -> &'a $wrap {
+                unsafe { std::mem::transmute::<$llvm, &$wrap>(ptr) }
             }
         }
-
-        impl<'a> From<&'a $our> for $llvm {
-            fn from(ty: &'a $our) -> $llvm {
-                unsafe { ::std::mem::transmute::<&$our, $llvm>(ty) }
+        impl<'a> From<&'a $wrap> for $llvm {
+            fn from(typ: &'a $wrap) -> $llvm {
+                unsafe { std::mem::transmute::<&$wrap, $llvm>(typ) }
             }
         }
-
-        impl<'a> From<$llvm> for &'a mut $our {
-            fn from(ptr: $llvm) -> &'a mut $our {
-                unsafe { ::std::mem::transmute::<$llvm, &mut $our>(ptr) }
+        impl<'a> From<$llvm> for &'a mut $wrap {
+            fn from(ptr: $llvm) -> &'a mut $wrap {
+                unsafe { std::mem::transmute::<$llvm, &mut $wrap>(ptr) }
             }
         }
-
-        impl<'a> From<&'a mut $our> for $llvm {
-            fn from(ty: &'a mut $our) -> $llvm {
-                unsafe { ::std::mem::transmute::<&mut $our, $llvm>(ty) }
+        impl<'a> From<&'a mut $wrap> for $llvm {
+            fn from(typ: &'a mut $wrap) -> $llvm {
+                unsafe { std::mem::transmute::<&mut $wrap, $llvm>(typ) }
             }
         }
     }
@@ -45,27 +43,27 @@ macro_rules! impl_from {
 
 // TODO Documentation
 macro_rules! impl_eq {
-    ($llvm: tt, $our: ty) => {
-        impl PartialEq for $our {
+    ($llvm: tt, $wrap: ty) => {
+        impl PartialEq for $wrap {
             fn eq(&self, other: &Self) -> bool {
                 $llvm::from(self) == $llvm::from(other)
             }
         }
 
-        impl Eq for $our {}
+        impl Eq for $wrap {}
     }
 }
 
 // TODO Documentation
 macro_rules! impl_fmt {
-    ($our: ty, $to_string: ident) => {
-        impl ::std::fmt::Debug for $our {
+    ($wrap: ty, $to_string: ident) => {
+        impl ::std::fmt::Debug for $wrap {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                write!(f, "llvm::{}({})", stringify!($our), self)
+                write!(f, "llvm::{}({})", stringify!($wrap), self)
             }
         }
 
-        impl ::std::fmt::Display for $our {
+        impl ::std::fmt::Display for $wrap {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 unsafe {
                     let s_ptr = $to_string(self.into());

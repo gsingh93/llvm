@@ -6,32 +6,6 @@ use derive_more::{Deref, DerefMut};
 
 use super::*;
 
-/// Automatically builds wrappers for representing nameable(?) LLVM instructions
-macro_rules! build_op_str {
-    ($op_name: ident, $fn: path, $($argn: ident: $argv: path),*) => {
-        impl Builder {
-            pub fn $op_name(&mut self, $($argn: $argv),*, name: &str) -> LLVMValueRef {
-                let c_name = CString::new(name).unwrap();
-                unsafe {
-                    $fn(self.ptr, $($argn),*, c_name.as_ptr())
-                }
-            }
-        }
-    }
-}
-
-/// Automatically builds wrappers for representing LLVM instructions, with optional additional fields
-macro_rules! build_op {
-    ($op_name: ident, $fn: path $(, $($argn: ident: $argv: path),*)?) => {
-        impl Builder {
-            pub fn $op_name(&mut self $(, $($argn: $argv),*)?) -> LLVMValueRef {
-                unsafe {
-                    $fn(self.ptr $(, $($argn),*)?)
-                }
-            }
-        }
-    }
-}
 
 // TODO Documentation
 #[derive(Debug, Deref, DerefMut)]
@@ -39,10 +13,65 @@ pub struct Builder {
     pub ptr: LLVMBuilderRef
 }
 configure_wrapper!(Builder, LLVMBuilderRef);
+
 impl Drop for Builder {
     fn drop(&mut self) {
         unsafe {
             llvm::LLVMDisposeBuilder(self.ptr);
+        }
+    }
+}
+
+// TODO Documentation
+impl Builder {
+    /// Sets the insertion point to the end of the block
+    pub fn position_at_end(&mut self, basic_block: LLVMBasicBlockRef) {
+        unsafe {
+            llvm::LLVMPositionBuilderAtEnd(self.ptr, basic_block);
+        }
+    }
+
+    /// Builds a function call
+    pub fn build_call(&mut self, func: Function, mut args: Vec<LLVMValueRef>, name: &str) -> LLVMValueRef {
+        let c_name = CString::new(name).unwrap();
+        unsafe {
+            llvm::LLVMBuildCall(
+                self.ptr,
+                func.ptr,
+                args.as_mut_ptr(),
+                args.len() as u32,
+                c_name.as_ptr()
+            )
+        }
+    }
+
+    // Functions for working with strings
+    pub fn build_global_string(&self, s: &str, name: &str) -> LLVMValueRef {
+        let c_s = CString::new(s).unwrap();
+        let c_name = CString::new(name).unwrap();
+        unsafe {
+            llvm::LLVMBuildGlobalString(self.ptr, c_s.as_ptr(), c_name.as_ptr())
+        }
+    }
+    pub fn build_global_string_ptr(&self, s: &str, name: &str) -> LLVMValueRef {
+        let c_s = CString::new(s).unwrap();
+        let c_name = CString::new(name).unwrap();
+        unsafe {
+            llvm::LLVMBuildGlobalStringPtr(self.ptr, c_s.as_ptr(), c_name.as_ptr())
+        }
+    }
+
+    // Functions for working with element pointers
+    pub fn build_in_bounds_gep(&self, ptr: LLVMValueRef, mut indices: Vec<LLVMValueRef>, name: &str) -> LLVMValueRef {
+        let c_name = CString::new(name).unwrap();
+        unsafe {
+            llvm::LLVMBuildInBoundsGEP(self.ptr, ptr, indices.as_mut_ptr(), indices.len() as u32, c_name.as_ptr())
+        }
+    }
+    pub fn build_gep(&self, ptr: LLVMValueRef, mut indices: Vec<LLVMValueRef>, name: &str) -> LLVMValueRef {
+        let c_name = CString::new(name).unwrap();
+        unsafe {
+            llvm::LLVMBuildGEP(self.ptr, ptr, indices.as_mut_ptr(), indices.len() as u32, c_name.as_ptr())
         }
     }
 }
@@ -55,6 +84,33 @@ impl Drop for Builder {
 // TODO: LLVMBuildBinOp
 // TODO: LLVMBuildAtomicRMW
 
+
+/// Generates wrapping functions for representing nameable(?) LLVM instructions
+macro_rules! build_op_str {
+    ($op_name:ident, $fn:path, $($argn:ident: $argv:path),*) => {
+        impl Builder {
+            pub fn $op_name(&mut self, $($argn: $argv),*, name: &str) -> LLVMValueRef {
+                let c_name = CString::new(name).unwrap();
+                unsafe {
+                    $fn(self.ptr, $($argn),*, c_name.as_ptr())
+                }
+            }
+        }
+    }
+}
+
+/// Generates wrapping functions for representing LLVM instructions
+macro_rules! build_op {
+    ($op_name:ident, $fn:path $(, $($argn:ident: $argv:path),*)?) => {
+        impl Builder {
+            pub fn $op_name(&mut self $(, $($argn: $argv),*)?) -> LLVMValueRef {
+                unsafe {
+                    $fn(self.ptr $(, $($argn),*)?)
+                }
+            }
+        }
+    }
+}
 
 // Integer math
 build_op_str!(build_neg, llvm::LLVMBuildNeg, val: LLVMValueRef);
@@ -177,57 +233,4 @@ build_op!(build_ret_void, llvm::LLVMBuildRetVoid);
 build_op!(build_ret, llvm::LLVMBuildRet, ret_val: LLVMValueRef);
 build_op!(build_br, llvm::LLVMBuildBr, dest: LLVMBasicBlockRef);
 
-
-impl Builder {
-    // Sets the insertion point at the end of the block
-    pub fn position_at_end(&mut self, basic_block: LLVMBasicBlockRef) {
-        unsafe {
-            llvm::LLVMPositionBuilderAtEnd(self.ptr, basic_block);
-        }
-    }
-
-    // Builds a function call
-    pub fn build_call(&mut self, func: Function, mut args: Vec<LLVMValueRef>, name: &str) -> LLVMValueRef {
-        let c_name = CString::new(name).unwrap();
-        unsafe {
-            llvm::LLVMBuildCall(
-                self.ptr,
-                func.ptr,
-                args.as_mut_ptr(),
-                args.len() as u32,
-                c_name.as_ptr()
-            )
-        }
-    }
-
-    // Functions for working with strings
-    pub fn build_global_string(&self, s: &str, name: &str) -> LLVMValueRef {
-        let c_s = CString::new(s).unwrap();
-        let c_name = CString::new(name).unwrap();
-        unsafe {
-            llvm::LLVMBuildGlobalString(self.ptr, c_s.as_ptr(), c_name.as_ptr())
-        }
-    }
-    pub fn build_global_string_ptr(&self, s: &str, name: &str) -> LLVMValueRef {
-        let c_s = CString::new(s).unwrap();
-        let c_name = CString::new(name).unwrap();
-        unsafe {
-            llvm::LLVMBuildGlobalStringPtr(self.ptr, c_s.as_ptr(), c_name.as_ptr())
-        }
-    }
-
-    // Functions for working with element pointers
-    pub fn build_in_bounds_gep(&self, ptr: LLVMValueRef, mut indices: Vec<LLVMValueRef>, name: &str) -> LLVMValueRef {
-        let c_name = CString::new(name).unwrap();
-        unsafe {
-            llvm::LLVMBuildInBoundsGEP(self.ptr, ptr, indices.as_mut_ptr(), indices.len() as u32, c_name.as_ptr())
-        }
-    }
-    pub fn build_gep(&self, ptr: LLVMValueRef, mut indices: Vec<LLVMValueRef>, name: &str) -> LLVMValueRef {
-        let c_name = CString::new(name).unwrap();
-        unsafe {
-            llvm::LLVMBuildGEP(self.ptr, ptr, indices.as_mut_ptr(), indices.len() as u32, c_name.as_ptr())
-        }
-    }
-}
 

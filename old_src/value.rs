@@ -1,6 +1,7 @@
 
 use llvm_sys::{*, core::*, prelude::*};
 use derive_more::{Deref, DerefMut};
+
 use super::{*, types::ContextType};
 
 // TODO Documentation
@@ -12,6 +13,7 @@ pub struct Value(LLVMValue); // TODO: mark this as an unsized type
 
 impl Value {
     // TODO Documentation
+    // TODO Debug
     pub fn set_name(&mut self, name: &str) {
         let c_name = CString::new(name).unwrap();
         unsafe {
@@ -20,11 +22,13 @@ impl Value {
     }
 
     // TODO Documentation
+    // TODO Debug
     pub fn name(&self) -> String {
         unsafe {
             let mut length: libc::size_t = 0;
-            let c_name = LLVMGetValueName2(self.into(), &mut length);
-            String::from_raw_parts(c_name as *mut u8, length + 1, length + 1)
+            let name = LLVMGetValueName2(self.into(), &mut length);
+            let slice = std::slice::from_raw_parts(name as *const u8, length as usize);
+            String::from_utf8_lossy(slice).into_owned()
         }
     }
 }
@@ -35,12 +39,14 @@ pub trait IntoConstValue: ContextType {
 }
 
 // TODO Documentation
+// TODO Debug: May be easier to build fully, then simplify into macros
 macro_rules! impl_const_value {
     (UINT: $t: ty) => {
         impl IntoConstValue for $t {
             fn gen_const(self, context: &Context) -> LLVMValueRef {
                 unsafe {
-                    LLVMConstInt(<$t>::get_type_in_context(context).into(), self.into(), 0)
+                    let type_in_context = <$t as ContextType>::get_type_in_context(context);
+                    LLVMConstInt(From::from(type_in_context), self.into(), 0)
                 }
             }
         }
@@ -91,7 +97,7 @@ mod tests {
         let value: &mut Value = 30u32.gen_const(&context).into();
 
         value.set_name(value_name);
-        assert_eq!(value.name(), value_name);
+        assert_eq!(value.name(), value_name.to_string());
     }
 }
 
