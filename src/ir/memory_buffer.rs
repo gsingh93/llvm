@@ -1,0 +1,9 @@
+/*
+    LLVMCreateMemoryBufferWithContentsOfFile⚠
+    LLVMCreateMemoryBufferWithMemoryRange⚠
+    LLVMCreateMemoryBufferWithMemoryRangeCopy⚠
+    LLVMCreateMemoryBufferWithSTDIN⚠
+    LLVMDisposeMemoryBuffer⚠
+    LLVMGetBufferSize⚠
+    LLVMGetBufferStart⚠
+*/
